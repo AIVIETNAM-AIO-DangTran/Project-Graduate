@@ -1,0 +1,15 @@
+{
+  "total_rows": 1500,
+  "by_pair_and_split": {
+    "en-de": {
+      "train": 800,
+      "validation": 100,
+      "test": 100
+    },
+    "en-fr": {
+      "train": 400,
+      "validation": 50,
+      "test": 50
+    }
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "model": "sentence_lora_balanced_multidoc_v2",
+  "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+  "adapter_path": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\sentence_lora_balanced_multidoc_v2\\final_adapter",
+  "split": "test",
+  "dataset_path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_multidoc_v2\\test.csv",
+  "dataset_sha256": "e09a2e95e2f89ffc97b095b3778cd5493b41024854d93e747c8ead7b3a69aa72",
+  "input_format": "src",
+  "source_truncation_side": "right",
+  "source_max_length": 128,
+  "decoding": {
+    "method": "beam_search",
+    "num_beams": 4,
+    "max_length": 128,
+    "batch_size": 4
+  },
+  "sacrebleu_version": "2.6.0",
+  "pairs": {
+    "en-de": {
+      "num_examples": 100,
+      "sacrebleu": 25.256408096698237,
+      "chrf": 55.9947227147945,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    },
+    "en-fr": {
+      "num_examples": 50,
+      "sacrebleu": 36.85193919716102,
+      "chrf": 60.75425886800685,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    }
+  },
+  "macro_average_sacrebleu": 31.05417364692963,
+  "macro_average_chrf": 58.374490791400675,
+  "peak_allocated_vram_gb": 1.3871560096740723
+}

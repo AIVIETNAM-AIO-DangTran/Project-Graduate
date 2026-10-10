@@ -1,0 +1,80 @@
+{
+  "config": {
+    "dataset": "europarl_multidoc_v2",
+    "split": "validation",
+    "dataset_sha256": "7fe4dfc70f881e046999659049e88e67601709e4d50cfa662494d6bcde8df8ee",
+    "baseline_sha256": "3cf6fdfddc4ea7dca7e6ff2d607bc15544db5cb6fc47e5d2e67f8d5a014666ea",
+    "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_multidoc_v2\\final_adapter",
+    "adapter_sha256": "c77ea00eda9a0959ab615cb9aaf419e989a0245c72113baaff8a56ed57e21c8f",
+    "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+    "input_format": "src </s> previous_src",
+    "source_truncation_side": "right",
+    "max_length": 128,
+    "method": "top_p",
+    "samples": 3,
+    "top_k": 0,
+    "top_p": 0.9,
+    "temperature": 0.8,
+    "seed": 42,
+    "limit_per_pair": 0
+  },
+  "reranker": {
+    "generation": {
+      "dataset": "europarl_multidoc_v2",
+      "split": "validation",
+      "dataset_sha256": "7fe4dfc70f881e046999659049e88e67601709e4d50cfa662494d6bcde8df8ee",
+      "baseline_sha256": "3cf6fdfddc4ea7dca7e6ff2d607bc15544db5cb6fc47e5d2e67f8d5a014666ea",
+      "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_multidoc_v2\\final_adapter",
+      "adapter_sha256": "c77ea00eda9a0959ab615cb9aaf419e989a0245c72113baaff8a56ed57e21c8f",
+      "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+      "input_format": "src </s> previous_src",
+      "source_truncation_side": "right",
+      "max_length": 128,
+      "method": "top_p",
+      "samples": 3,
+      "top_k": 0,
+      "top_p": 0.9,
+      "temperature": 0.8,
+      "seed": 42,
+      "limit_per_pair": 0
+    },
+    "candidate_sha256": "a364e68fcf18651c2028bbd6f11bc9440e7bedf110e65103129e30e155cbade5",
+    "model": "qwen2.5:7b",
+    "model_digest": "845dbda0ea48ed749caafd9e6037047aa19acfcfd82e704d7ca97d631a0b697e",
+    "prompt_version": 1,
+    "temperature": 0,
+    "seed": 42
+  },
+  "sacrebleu_version": "2.6.0",
+  "pairs": {
+    "en-de": {
+      "num_examples": 100,
+      "beam_bleu": 28.805319817976866,
+      "reranked_bleu": 28.344162473637034,
+      "beam_chrf": 58.514894049591234,
+      "reranked_chrf": 58.51605565097153,
+      "changed": 29,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    },
+    "en-fr": {
+      "num_examples": 50,
+      "beam_bleu": 34.51801215042815,
+      "reranked_bleu": 34.42930480036689,
+      "beam_chrf": 60.516201451713435,
+      "reranked_chrf": 60.496413233718584,
+      "changed": 15,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    }
+  },
+  "macro": {
+    "beam_bleu": 31.661665984202507,
+    "reranked_bleu": 31.386733637001964,
+    "beam_chrf": 59.51554775065233,
+    "reranked_chrf": 59.50623444234506
+  },
+  "total_changed": 44,
+  "mean_unique_candidates": 3.78,
+  "smoke_test": false
+}
