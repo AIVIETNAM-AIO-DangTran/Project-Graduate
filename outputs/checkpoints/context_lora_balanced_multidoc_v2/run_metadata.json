@@ -1,0 +1,78 @@
+{
+  "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+  "experiment": "context_lora_balanced",
+  "data_directory": "D:\\CIS600\\context-mt\\data\\processed\\europarl_multidoc_v2",
+  "dataset_files": {
+    "train": {
+      "path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_multidoc_v2\\train.csv",
+      "sha256": "ba74987aec950e742c189fa225baace0e79bfd2afab4c8ba104291cd502de811",
+      "num_examples": 1200,
+      "num_documents": 40,
+      "pair_counts": {
+        "en-fr": 400,
+        "en-de": 800
+      }
+    },
+    "validation": {
+      "path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_multidoc_v2\\validation.csv",
+      "sha256": "7fe4dfc70f881e046999659049e88e67601709e4d50cfa662494d6bcde8df8ee",
+      "num_examples": 150,
+      "num_documents": 10,
+      "pair_counts": {
+        "en-fr": 50,
+        "en-de": 100
+      }
+    }
+  },
+  "resumed_from_checkpoint": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_multidoc_v2\\checkpoint-300",
+  "input_mode": "context_v1",
+  "input_format": "src </s> previous_src",
+  "source_truncation_side": "right",
+  "target_truncation_side": "right",
+  "loss_mode": "balanced",
+  "training_objective": "mean(normalized_pair_weight * mean_valid_token_CE_per_sentence)",
+  "validation_objective": "legacy_per_batch_weighted_mean_of_sentence_CE",
+  "raw_pair_weights": {
+    "en-fr": 1.7320508075688772,
+    "en-de": 1.224744871391589
+  },
+  "weight_normalization": 1.3938468501173515,
+  "train_batch_size": 1,
+  "gradient_accumulation_steps": 8,
+  "seed": 42,
+  "best_model_checkpoint": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_multidoc_v2\\checkpoint-450",
+  "best_metric": 1.1579344272613525,
+  "training_mode": "full_training",
+  "max_steps": -1,
+  "epochs": 3.0,
+  "max_length": 128,
+  "source_max_length": 128,
+  "target_max_length": 128,
+  "pair_counts": {
+    "en-fr": 400,
+    "en-de": 800
+  },
+  "pair_weights": {
+    "en-fr": 1.2426406871192852,
+    "en-de": 0.8786796564403575
+  },
+  "lora": {
+    "r": 8,
+    "alpha": 16,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "v_proj"
+    ]
+  },
+  "train_metrics": {
+    "train_runtime": 543.151,
+    "train_samples_per_second": 2.209,
+    "train_steps_per_second": 0.276,
+    "total_flos": 503198523850752.0,
+    "train_loss": 0.946326535542806,
+    "epoch": 3.0
+  },
+  "elapsed_minutes": 9.06183108886083,
+  "peak_allocated_vram_gb": 1.6242094039916992
+}
