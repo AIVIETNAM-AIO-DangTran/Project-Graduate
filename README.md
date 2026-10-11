@@ -57,7 +57,7 @@ jupyter nbconvert --to notebook --execute notebooks/01_europarl_eda.ipynb --inpl
 jupyter nbconvert --to notebook --execute notebooks/02_experiment_analysis.ipynb --inplace
 ```
 
-To run model inference using the included final adapters, the two training `run_metadata.json` files must also be copied into their corresponding `outputs/checkpoints/*_multidoc_v2/` directories. The evaluation script checks these files, the adapter configuration, and the frozen dataset hashes before generating predictions:
+To run model inference using the included final adapters, the evaluation script checks the included `run_metadata.json` files, the adapter configuration, and the frozen dataset hashes before generating predictions:
 
 ```powershell
 python scripts/evaluate_lora_validation.py --variant multidoc_balanced --split validation
@@ -68,6 +68,6 @@ For the optional sampling analysis, run the `generate`, `rerank`, then `score` s
 
 ## Scope and limitations
 
-The raw OPUS Europarl archives, virtual environments, Hugging Face caches, and intermediate training checkpoints are not stored in Git. To rebuild the data from raw sources, download the archives with `scripts/download_europarl.py` and follow the data builder's arguments and manifest; the legacy pilot files are also required. The two final adapter directories currently lack their `run_metadata.json` files in this repository; include them before claiming end-to-end reproducibility.
+The raw OPUS Europarl archives, virtual environments, Hugging Face caches, and intermediate training checkpoints are not stored in Git. To rebuild the data from raw sources, download the archives with `scripts/download_europarl.py` and follow the data builder's arguments and manifest; the legacy pilot files are also required. The v2 training metadata files are included alongside the final adapter directories. A larger controlled v3 experiment is described in [`docs/scaled_v3_experiment.md`](docs/scaled_v3_experiment.md).
 
 The test split has only 150 examples across 10 source documents. We report descriptive scores and examples, without a paired uncertainty interval or a dedicated human evaluation of cross-sentence phenomena. No improvement should be interpreted as a causal effect of document context without additional targeted evidence.
