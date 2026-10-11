@@ -34,7 +34,7 @@ COMPARISONS = {
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="multidoc_v2")
     parser.add_argument("--split", choices=("validation", "test"), default="test")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)
@@ -88,23 +88,23 @@ def read_table(path, split, predictions=False):
 def arms_for_dataset(dataset):
     if dataset == "pilot":
         return dict(ARMS)
-    if dataset == "multidoc_v2":
+    if dataset in ("multidoc_v2", "scaled_v3"):
         return {
-            "A": "sentence_lora_balanced_multidoc_v2",
-            "B": "context_lora_balanced_multidoc_v2",
-            "C": "sentence_lora_balanced_multidoc_v2_llm",
-            "D": "context_lora_balanced_multidoc_v2_llm",
+            "A": f"sentence_lora_balanced_{dataset}",
+            "B": f"context_lora_balanced_{dataset}",
+            "C": f"sentence_lora_balanced_{dataset}_llm",
+            "D": f"context_lora_balanced_{dataset}_llm",
         }
     raise ValueError(f"Unknown dataset: {dataset}")
 
 
 def load_aligned(split, limit_per_pair=0, dataset="pilot"):
     data_dir = PROJECT_ROOT / "data/processed" / (
-        "europarl_pilot" if dataset == "pilot" else "europarl_multidoc_v2"
+        "europarl_pilot" if dataset == "pilot" else f"europarl_{dataset}"
     )
     dataset_path = data_dir / f"{split}.csv"
     dataset_hash = file_hash(dataset_path)
-    if dataset == "multidoc_v2":
+    if dataset != "pilot":
         summary = json.loads((data_dir / "summary.json").read_text(encoding="utf-8"))
         if summary["csv_sha256"][split] != dataset_hash:
             raise ValueError(f"Dataset differs from builder manifest: {dataset_path}")
@@ -118,7 +118,7 @@ def load_aligned(split, limit_per_pair=0, dataset="pilot"):
         if not table.index.equals(canonical.index) or not table[content].equals(canonical[content]):
             raise ValueError(f"Arm {arm}: IDs, source, context, or references do not match {dataset_path}.")
         result[f"{arm}_prediction"] = table["prediction"].to_numpy()
-        if dataset == "multidoc_v2":
+        if dataset != "pilot":
             metric_path = PROJECT_ROOT / f"outputs/metrics/{directory}_{split}_metrics.json"
             report = json.loads(metric_path.read_text(encoding="utf-8"))
             if report.get("split") != split or report.get("smoke_test", False):
@@ -240,7 +240,7 @@ def main():
         table[f"{arm}_comet"] = validate_scores(prediction.scores, len(table))
     arms, comparisons = summarize(table, arm_directories)
     suffix = f"_smoke{args.limit_per_pair}" if args.limit_per_pair else ""
-    label = f"comet_{args.split}" + ("_multidoc_v2" if args.dataset == "multidoc_v2" else "") + suffix
+    label = f"comet_{args.split}" + (f"_{args.dataset}" if args.dataset != "pilot" else "") + suffix
     analysis_dir = PROJECT_ROOT / "outputs/analysis" / label
     score_path = analysis_dir / "all_examples.csv"
     report_path = PROJECT_ROOT / "outputs/metrics" / f"{label}_metrics.json"
