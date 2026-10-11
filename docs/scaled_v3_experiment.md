@@ -14,7 +14,16 @@ The target plan below selects 400/100/100 documents for train/validation/test. T
 
 ## 1. Build and inspect data
 
-Run in PowerShell from `D:\CIS600\context-mt` in the project's normal Python environment. The ignored raw Europarl archives in `data/raw/europarl/` and the existing pilot/v2 processed CSVs are required.
+First synchronize the updated scripts from the Git checkout to the original working directory (which contains the raw Europarl archives and Python environments):
+
+```powershell
+cd D:\CIS600\Project-Graduate-upload
+git pull --ff-only origin main
+Copy-Item .\scripts\build_europarl_multidoc.py, .\scripts\eda_europarl.py, .\scripts\evaluate_lora_validation.py, .\scripts\postedit_lora.py, .\scripts\evaluate_comet.py D:\CIS600\context-mt\scripts\ -Force
+cd D:\CIS600\context-mt
+```
+
+Run the remaining commands from `D:\CIS600\context-mt` in the project's normal Python environment. The ignored raw Europarl archives in `data/raw/europarl/` and the existing pilot/v2 processed CSVs are required.
 
 ```powershell
 python scripts\build_europarl_multidoc.py `
