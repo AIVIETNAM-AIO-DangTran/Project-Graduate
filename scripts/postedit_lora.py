@@ -42,7 +42,7 @@ RESPONSE_SCHEMA = {
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="multidoc_v2")
     parser.add_argument("--split", choices=("validation", "test"), default="validation")
     parser.add_argument("--variant", choices=("both", *VARIANTS), default="both")
     parser.add_argument("--model", default="qwen2.5:7b")
@@ -72,7 +72,7 @@ def write_json(path, value):
 
 def experiment_directory(variant, dataset):
     directory = VARIANTS[variant]["directory"]
-    return directory if dataset == "pilot" else f"{directory}_multidoc_v2"
+    return directory if dataset == "pilot" else f"{directory}_{dataset}"
 
 
 def api_call(base_url, endpoint, timeout, payload=None):
@@ -104,8 +104,8 @@ def load_predictions(split, variants, dataset="pilot"):
     tables, paths = {}, {}
     required = {*KEYS, "split", "src", "previous_src", "tgt", "prediction"}
     source_table = None
-    if dataset == "multidoc_v2":
-        data_dir = PROJECT_ROOT / "data/processed/europarl_multidoc_v2"
+    if dataset in ("multidoc_v2", "scaled_v3"):
+        data_dir = PROJECT_ROOT / "data/processed" / f"europarl_{dataset}"
         csv_path = data_dir / f"{split}.csv"
         expected_hash = json.loads((data_dir / "summary.json").read_text(
             encoding="utf-8"
