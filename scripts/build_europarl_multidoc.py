@@ -325,7 +325,7 @@ def validate(rows, excluded, plan):
     return statistics
 
 
-def write_dataset(output, rows, report):
+def write_dataset(output, rows, report, plan):
     if output.exists():
         raise FileExistsError(f"Output already exists: {output}. Choose a new --output-dir.")
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -333,7 +333,7 @@ def write_dataset(output, rows, report):
         staging = Path(temp) / "dataset"
         staging.mkdir()
         hashes = {}
-        for split in PLAN:
+        for split in plan:
             path = staging / f"{split}.csv"
             with path.open("w", encoding="utf-8", newline="") as stream:
                 writer = csv.DictWriter(stream, fieldnames=FIELDNAMES)
@@ -355,14 +355,35 @@ def main():
     parser.add_argument("--output-dir", type=Path, default=Path("data/processed/europarl_multidoc_v2"))
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--candidate-multiplier", type=int, default=4)
+    parser.add_argument("--train-documents", type=int, default=PLAN["train"]["documents"])
+    parser.add_argument("--validation-documents", type=int, default=PLAN["validation"]["documents"])
+    parser.add_argument("--test-documents", type=int, default=PLAN["test"]["documents"])
+    parser.add_argument(
+        "--exclude-dir", type=Path, action="append", default=[],
+        help="Additional processed dataset directory whose documents must not enter this dataset. Repeat as needed.",
+    )
     args = parser.parse_args()
     if args.candidate_multiplier < 1:
         parser.error("--candidate-multiplier must be at least 1")
+    if min(args.train_documents, args.validation_documents, args.test_documents) < 1:
+        parser.error("Each document count must be positive")
+    plan = {
+        split: {**settings, "documents": getattr(args, f"{split}_documents")}
+        for split, settings in PLAN.items()
+    }
     root = args.project_root.resolve()
     raw, legacy, output = [(root / path).resolve() for path in (args.raw_dir, args.legacy_dir, args.output_dir)]
     if output.exists():
         raise FileExistsError(f"Output already exists: {output}. Choose a new --output-dir.")
     excluded, legacy_hashes = legacy_documents(legacy)
+    additional_exclusions = {}
+    for directory in args.exclude_dir:
+        directory = (root / directory).resolve()
+        if directory == output:
+            parser.error("An exclusion directory cannot be the output directory")
+        documents, hashes = legacy_documents(directory)
+        excluded.update(documents)
+        additional_exclusions[str(directory)] = hashes
     for path in [*(raw / f"{lang}.zip" for lang in ("en", "de", "fr")),
                  *(raw / filename for filename in PAIR_FILES.values())]:
         if not path.is_file():
@@ -370,19 +391,20 @@ def main():
     print(f"Seed: {args.seed}; excluded legacy documents: {len(excluded)}", flush=True)
     print("Indexing both alignment files; no model or GPU is used.", flush=True)
     indexes = {lang: alignment_index(raw / filename, lang) for lang, filename in PAIR_FILES.items()}
-    candidates = candidate_documents(indexes, excluded, args.seed, args.candidate_multiplier, PLAN)
+    candidates = candidate_documents(indexes, excluded, args.seed, args.candidate_multiplier, plan)
     wanted = {doc for docs in candidates.values() for doc in docs}
     print(f"Reading sentence links for {len(wanted)} candidate documents...", flush=True)
     maps = {lang: selected_alignment_maps(raw / filename, lang, wanted)
             for lang, filename in PAIR_FILES.items()}
     with ExitStack() as stack:
         archives = {lang: stack.enter_context(ZipFile(raw / f"{lang}.zip")) for lang in ("en", "de", "fr")}
-        rows, manifest, skipped = sample_rows(archives, indexes, maps, candidates, args.seed, PLAN)
-    statistics = validate(rows, excluded, PLAN)
-    report = {"dataset": "Europarl multidoc v2", "seed": args.seed, "plan": PLAN,
+        rows, manifest, skipped = sample_rows(archives, indexes, maps, candidates, args.seed, plan)
+    statistics = validate(rows, excluded, plan)
+    report = {"dataset": "Europarl multidoc document-stratified", "seed": args.seed, "plan": plan,
               "script_sha256": hashlib.sha256(Path(__file__).read_bytes()).hexdigest(),
               "candidate_multiplier": args.candidate_multiplier,
               "excluded_legacy_documents": sorted(excluded), "legacy_csv_sha256": legacy_hashes,
+              "additional_exclusion_csv_sha256": additional_exclusions,
               "raw_directory": str(raw), "alignment_files": PAIR_FILES,
               "candidate_counts": {split: len(docs) for split, docs in candidates.items()},
               "splits": statistics, "selected_documents": manifest, "skipped_candidates": skipped,
@@ -392,7 +414,7 @@ def main():
                          "cross_split_current_source_overlap": 0, "legacy_document_overlap": 0},
               "limitations": "Structural validation does not verify semantic equivalence of all OPUS alignments. "
                              "The bilingual-intersection sampling restricts the population to sentences available in both target languages."}
-    write_dataset(output, rows, report)
+    write_dataset(output, rows, report, plan)
     print("\n=== MULTIDOCUMENT DATASET: CHECKS PASS ===")
     for split, stats in statistics.items():
         print(f"{split}: {stats['num_examples']} pairs; {stats['num_documents']} documents; {stats['pair_counts']}")
