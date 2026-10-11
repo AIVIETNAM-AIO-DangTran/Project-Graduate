@@ -36,13 +36,25 @@ VARIANTS = {
         "truncation_side": "right",
         "dataset": "europarl_multidoc_v2",
     },
+    "sentence_balanced_scaled_v3": {
+        "directory": "sentence_lora_balanced_scaled_v3",
+        "format": "src",
+        "truncation_side": "right",
+        "dataset": "europarl_scaled_v3",
+    },
+    "context_balanced_scaled_v3": {
+        "directory": "context_lora_balanced_scaled_v3",
+        "format": "src </s> previous_src",
+        "truncation_side": "right",
+        "dataset": "europarl_scaled_v3",
+    },
 }
 
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--variant", choices=("multidoc_balanced", *VARIANTS), default="multidoc_balanced",
+        "--variant", choices=("multidoc_balanced", "scaled_balanced", *VARIANTS), default="multidoc_balanced",
         help="One adapter or both multidoc v2 balanced adapters.",
     )
     parser.add_argument(
@@ -216,6 +228,8 @@ def main():
         raise RuntimeError("CUDA is not available.")
     if args.variant == "multidoc_balanced":
         variants = ["sentence_balanced_multidoc_v2", "context_balanced_multidoc_v2"]
+    elif args.variant == "scaled_balanced":
+        variants = ["sentence_balanced_scaled_v3", "context_balanced_scaled_v3"]
     else:
         variants = [args.variant]
     dataset_names = {VARIANTS[v]["dataset"] for v in variants}
