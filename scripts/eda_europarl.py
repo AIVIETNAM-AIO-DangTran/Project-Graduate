@@ -1,3 +1,4 @@
+import argparse
 import os
 import hashlib
 import json
@@ -53,7 +54,7 @@ def load_splits():
             raise FileNotFoundError(f"Missing dataset split: {path}")
         expected = manifest["csv_sha256"][split]
         if hashlib.sha256(path.read_bytes()).hexdigest() != expected:
-            raise ValueError(f"Dataset differs from multidoc v2 manifest: {path}")
+            raise ValueError(f"Dataset differs from manifest: {path}")
 
         frame = pd.read_csv(path)
         frame["split"] = split
@@ -295,7 +296,7 @@ def save_figures(data, pair_counts, truncation_summary):
         order=list(SPLITS),
         hue_order=list(PAIRS),
     )
-    plt.title("Europarl multidoc v2 examples by split and language pair")
+    plt.title(f"{DATA_DIR.name} examples by split and language pair")
     plt.xlabel("Split")
     plt.ylabel("Number of examples")
     plt.tight_layout()
@@ -325,7 +326,7 @@ def save_figures(data, pair_counts, truncation_summary):
         axis.set_xlabel("mBART tokens")
         axis.set_ylabel("Density")
 
-    figure.suptitle("Europarl multidoc v2 token-length distributions", y=1.01)
+    figure.suptitle(f"{DATA_DIR.name} token-length distributions", y=1.01)
     figure.tight_layout()
     figure.savefig(
         FIGURE_DIR / "02_token_length_distributions.png",
@@ -445,7 +446,14 @@ def print_summary(data, pair_counts, length_summary, truncation_summary):
 
 
 def main():
-    print(f"Loading Europarl multidoc v2 data from: {DATA_DIR}")
+    global DATA_DIR, FIGURE_DIR, METRIC_DIR
+    parser = argparse.ArgumentParser(description="Analyze a frozen Europarl dataset and save figures.")
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    args = parser.parse_args()
+    DATA_DIR = PROJECT_ROOT / "data/processed" / f"europarl_{args.dataset}"
+    FIGURE_DIR = PROJECT_ROOT / "outputs/figures" / f"eda_{args.dataset}"
+    METRIC_DIR = PROJECT_ROOT / "outputs/metrics" / f"europarl_{args.dataset}"
+    print(f"Loading Europarl data from: {DATA_DIR}")
     data = load_splits()
 
     print(f"Loading tokenizer: {MODEL_NAME}")
