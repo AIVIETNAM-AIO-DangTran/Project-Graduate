@@ -22,7 +22,7 @@ SPLIT = "validation"
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--top-k-dir", type=Path, default=None)
     parser.add_argument("--top-p-dir", type=Path, default=None)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")

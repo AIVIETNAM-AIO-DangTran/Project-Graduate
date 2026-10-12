@@ -22,9 +22,9 @@ from transformers import MBart50TokenizerFast
 
 
 MODEL_NAME = "facebook/mbart-large-50-many-to-many-mmt"
-DATA_DIR = PROJECT_ROOT / "data/processed/europarl_multidoc_v2"
-FIGURE_DIR = PROJECT_ROOT / "outputs/figures/eda_multidoc_v2"
-METRIC_DIR = PROJECT_ROOT / "outputs/metrics/europarl_multidoc_v2"
+DATA_DIR = PROJECT_ROOT / "data/processed/europarl_scaled_v3"
+FIGURE_DIR = PROJECT_ROOT / "outputs/figures/eda_scaled_v3"
+METRIC_DIR = PROJECT_ROOT / "outputs/metrics/europarl_scaled_v3"
 
 SPLITS = ("train", "validation", "test")
 PAIRS = ("en-de", "en-fr")
@@ -448,7 +448,7 @@ def print_summary(data, pair_counts, length_summary, truncation_summary):
 def main():
     global DATA_DIR, FIGURE_DIR, METRIC_DIR
     parser = argparse.ArgumentParser(description="Analyze a frozen Europarl dataset and save figures.")
-    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="scaled_v3")
     args = parser.parse_args()
     DATA_DIR = PROJECT_ROOT / "data/processed" / f"europarl_{args.dataset}"
     FIGURE_DIR = PROJECT_ROOT / "outputs/figures" / f"eda_{args.dataset}"

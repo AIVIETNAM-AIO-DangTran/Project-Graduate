@@ -27,7 +27,7 @@ from transformers import (
 
 
 MODEL_NAME = "facebook/mbart-large-50-many-to-many-mmt"
-DATA_DIR = PROJECT_ROOT / "data/processed/europarl_multidoc_v2"
+DATA_DIR = PROJECT_ROOT / "data/processed/europarl_scaled_v3"
 
 LANGUAGE_CODES = {
     "en": "en_XX",

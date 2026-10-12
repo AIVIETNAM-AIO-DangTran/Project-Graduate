@@ -34,7 +34,7 @@ COMPARISONS = {
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--split", choices=("validation", "test"), default="test")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)

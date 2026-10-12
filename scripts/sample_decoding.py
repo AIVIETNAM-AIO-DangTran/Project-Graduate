@@ -26,7 +26,7 @@ MAX_LENGTH = 128
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--stage", choices=("generate", "rerank", "score"), required=True)
     parser.add_argument("--method", choices=("top_k", "top_p"), required=True)
     parser.add_argument("--split", choices=("validation", "test"), default="validation")

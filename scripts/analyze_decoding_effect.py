@@ -131,7 +131,7 @@ def short(text, limit=150):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="scaled_v3")
     args = parser.parse_args()
     rows, metrics = verify(args.dataset)
     output_dir = ROOT / "outputs/analysis" / f"decoding_validation_{args.dataset}"

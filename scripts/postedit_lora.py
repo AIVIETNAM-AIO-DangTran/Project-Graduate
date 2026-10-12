@@ -42,7 +42,7 @@ RESPONSE_SCHEMA = {
 
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--split", choices=("validation", "test"), default="validation")
     parser.add_argument("--variant", choices=("both", *VARIANTS), default="both")
     parser.add_argument("--model", default="qwen2.5:7b")

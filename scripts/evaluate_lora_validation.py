@@ -72,7 +72,7 @@ VARIANTS = {
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--variant", choices=("multidoc_balanced", "scaled_balanced", "scaled_ablation", *VARIANTS), default="multidoc_balanced",
+        "--variant", choices=("multidoc_balanced", "scaled_balanced", "scaled_ablation", *VARIANTS), default="scaled_ablation",
         help="One adapter, both balanced adapters, or all four scaled v3 ablation adapters.",
     )
     parser.add_argument(

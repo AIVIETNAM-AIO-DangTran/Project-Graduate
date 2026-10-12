@@ -28,13 +28,13 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 
 ## Files and use
 
-- `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis.
+- `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis. Analysis entry points default to scaled v3; pass `--dataset` or `--data-dir` explicitly to examine a different dataset.
 - `notebooks/01_europarl_eda.ipynb` (v3 EDA) and `02_experiment_analysis.ipynb` (v3 results, validation/test selected by `EXPERIMENT_SPLIT`). The older `03_scaled_v3_analysis.ipynb` entry point is retained for compatibility; v2 outputs remain available in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
 - `demo_v3.py` and `docs/demo_v3.md`: local A/B/C/D demo and installation commands.
 - `data/processed/europarl_scaled_v3/` and `outputs/`: working-project datasets, adapters, predictions and reports; check their availability in the local Windows project before reproduction. The complete frozen v3 artifacts are included in this repository.
-- `data/processed/europarl_multidoc_v2/` : retained to reproduce the v3 document exclusions. Earlier v2 results remain in Git history. Do not compare raw v2 and v3 scores as a matched improvement.
+- `data/processed/europarl_pilot/` and `data/processed/europarl_multidoc_v2/`: small exclusion records required to reproduce the frozen v3 document selection. Model training and evaluation use `europarl_scaled_v3/`; earlier v2 results remain in Git history.
 
 The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
 
@@ -45,4 +45,4 @@ $env:EXPERIMENT_SPLIT = "test"
 jupyter nbconvert --to notebook --execute notebooks\03_scaled_v3_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_test.ipynb
 ```
 
-The Europarl pilot CSVs are retained for the builder's document exclusions. Raw archives, virtual environments, Hugging Face caches and intermediate training checkpoints are not committed. The v3 findings are descriptive for this controlled sample and one training seed.
+Raw archives, virtual environments, Hugging Face caches and intermediate training checkpoints are not committed. The v3 findings are descriptive for this controlled sample and one training seed.
