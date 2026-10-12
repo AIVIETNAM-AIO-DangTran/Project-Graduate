@@ -158,9 +158,23 @@ def read_prefix(path, ordered):
     if not path.exists():
         return []
     rows = []
-    with path.open(encoding="utf-8") as stream:
-        for line in stream:
-            rows.append(json.loads(line))
+    lines = path.read_bytes().splitlines(keepends=True)
+    good_bytes = 0
+    for index, line in enumerate(lines):
+        try:
+            saved = json.loads(line)
+        except (json.JSONDecodeError, UnicodeDecodeError):
+            if index != len(lines) - 1 or line.endswith(b"\n"):
+                raise ValueError(f"Corrupt saved row: {path}, line {index + 1}")
+            # A final incomplete write can be regenerated on resume.
+            with path.open("r+b") as stream:
+                stream.truncate(good_bytes)
+            break
+        rows.append(saved)
+        good_bytes += len(line)
+        if index == len(lines) - 1 and not line.endswith(b"\n"):
+            with path.open("ab") as stream:
+                stream.write(b"\n")
     if len(rows) > len(ordered):
         raise ValueError(f"Too many saved rows: {path}")
     for expected, saved in zip(ordered, rows):
@@ -304,6 +318,8 @@ def rerank(args, ordered, config, folder):
                     {"role": "user", "content": prompt},
                 ],
             })
+            if result.get("done") is not True or result.get("done_reason") == "length":
+                raise RuntimeError(f"Incomplete Ollama choice for {key(row)}; rerun to resume.")
             response = json.loads(result["message"]["content"])
             selected = response.get("choice_index")
             if type(selected) is not int or not 0 <= selected < len(alternatives):
