@@ -1,0 +1,10 @@
+{
+  "dataset": "scaled_v3",
+  "split": "validation",
+  "seed": 20261012,
+  "source_sha256": "3c775ebd1b3d68f6f809eaecb5ef935e427ad09c833f8aa35044cc729e5b788d",
+  "rows": 48,
+  "per_pair_method": 12,
+  "selection": "8 random changed + 2 largest positive + 2 largest negative per pair/method",
+  "note": "The extreme cases are diagnostic, not population-representative."
+}
