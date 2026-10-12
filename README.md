@@ -29,7 +29,7 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 ## Files and use
 
 - `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis.
-- `notebooks/01_europarl_eda.ipynb`, `02_experiment_analysis.ipynb` (v2 history), `03_scaled_v3_analysis.ipynb` (v3, validation/test selected by `EXPERIMENT_SPLIT`).
+- `notebooks/01_europarl_eda.ipynb` (v3 EDA) and `02_experiment_analysis.ipynb` (v3 results, validation/test selected by `EXPERIMENT_SPLIT`). The older `03_scaled_v3_analysis.ipynb` entry point is retained for compatibility; v2 outputs remain in Git history and saved results.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
 - `demo_v3.py` and `docs/demo_v3.md`: local A/B/C/D demo and installation commands.
@@ -40,7 +40,7 @@ The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COME
 
 ```powershell
 $env:EXPERIMENT_SPLIT = "validation"
-jupyter nbconvert --to notebook --execute notebooks\03_scaled_v3_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_validation.ipynb
+jupyter nbconvert --to notebook --execute notebooks\02_experiment_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_validation.ipynb
 $env:EXPERIMENT_SPLIT = "test"
 jupyter nbconvert --to notebook --execute notebooks\03_scaled_v3_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_test.ipynb
 ```
