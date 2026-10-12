@@ -12,10 +12,10 @@ Copy-Item .\demo_v3.py D:\CIS600\context-mt\demo_v3.py -Force
 cd D:\CIS600\context-mt
 .\.venv\Scripts\Activate.ps1
 python -m pip install streamlit
-python -m streamlit run demo_v3.py
+python -m streamlit run demo_v3.py --server.fileWatcherType none
 ```
 
-The first launch downloads/loads the same base mBART model used for evaluation and reads the two local adapter directories:
+The `--server.fileWatcherType none` flag prevents Streamlit's file watcher from inspecting optional Transformers image modules such as ZoeDepth on this installation. When editing app code, restart Streamlit to see changes. This demo translates text and does not require `torchvision`.\n\nThe first launch downloads/loads the same base mBART model used for evaluation and reads the two local adapter directories:
 
 - `outputs/checkpoints/sentence_lora_balanced_scaled_v3/final_adapter/`
 - `outputs/checkpoints/context_lora_balanced_scaled_v3/final_adapter/`
