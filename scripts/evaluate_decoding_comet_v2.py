@@ -18,19 +18,13 @@ from evaluate_comet import (
 )
 
 SPLIT = "validation"
-DATA = PROJECT_ROOT / "data/processed/europarl_multidoc_v2"
-DECODING = PROJECT_ROOT / "outputs/decoding/multidoc_v2"
-BASELINE = PROJECT_ROOT / "outputs/predictions/context_lora_balanced_multidoc_v2_validation.csv"
-EXISTING_METRICS = PROJECT_ROOT / "outputs/metrics/comet_validation_multidoc_v2_metrics.json"
-EXISTING_SCORES = PROJECT_ROOT / "outputs/analysis/comet_validation_multidoc_v2/all_examples.csv"
 
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--top-k-dir", type=Path,
-                        default=Path("outputs/decoding/multidoc_v2/validation_top_k_k50_n3_t0p8_seed42"))
-    parser.add_argument("--top-p-dir", type=Path,
-                        default=Path("outputs/decoding/multidoc_v2/validation_top_p_p0p9_n3_t0p8_seed42"))
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
+    parser.add_argument("--top-k-dir", type=Path, default=None)
+    parser.add_argument("--top-p-dir", type=Path, default=None)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)
     args = parser.parse_args()
@@ -48,23 +42,28 @@ def check_content(reference, other, label):
 
 
 def inputs(args):
-    data_path = DATA / "validation.csv"
-    manifest = json.loads((DATA / "summary.json").read_text(encoding="utf-8"))
+    data_dir = PROJECT_ROOT / "data/processed" / f"europarl_{args.dataset}"
+    decoding_dir = PROJECT_ROOT / "outputs/decoding" / args.dataset
+    baseline_path = PROJECT_ROOT / "outputs/predictions" / f"context_lora_balanced_{args.dataset}_validation.csv"
+    existing_metrics = PROJECT_ROOT / "outputs/metrics" / f"comet_validation_{args.dataset}_metrics.json"
+    existing_scores = PROJECT_ROOT / "outputs/analysis" / f"comet_validation_{args.dataset}" / "all_examples.csv"
+    data_path = data_dir / "validation.csv"
+    manifest = json.loads((data_dir / "summary.json").read_text(encoding="utf-8"))
     dataset_hash = file_hash(data_path)
     if dataset_hash != manifest["csv_sha256"][SPLIT]:
-        raise ValueError("Validation CSV differs from the multidoc v2 manifest")
+        raise ValueError(f"Validation CSV differs from the {args.dataset} manifest")
     truth = read_table(data_path, SPLIT)
-    beam = read_table(BASELINE, SPLIT, predictions=True)
+    beam = read_table(baseline_path, SPLIT, predictions=True)
     check_content(truth, beam, "Beam baseline")
-    baseline_hash = file_hash(BASELINE)
-    existing = json.loads(EXISTING_METRICS.read_text(encoding="utf-8"))
-    if (existing.get("metric_model") != MODEL_NAME or existing.get("dataset") != "multidoc_v2"
+    baseline_hash = file_hash(baseline_path)
+    existing = json.loads(existing_metrics.read_text(encoding="utf-8"))
+    if (existing.get("metric_model") != MODEL_NAME or existing.get("dataset") != args.dataset
             or existing.get("split") != SPLIT or existing.get("smoke_test")
             or existing.get("num_examples_per_arm") != len(truth)
             or existing["inputs"]["dataset"]["sha256"] != dataset_hash
             or existing["inputs"]["B"]["sha256"] != baseline_hash):
         raise ValueError("Existing arm B COMET report has different provenance")
-    saved = read_table(EXISTING_SCORES, SPLIT)
+    saved = read_table(existing_scores, SPLIT)
     check_content(truth, saved, "Existing COMET score table")
     if not saved["B_prediction"].equals(beam["prediction"]):
         raise ValueError("Existing COMET beam text differs from the baseline")
@@ -80,14 +79,18 @@ def inputs(args):
         if not math.isclose(measured, expected, rel_tol=0, abs_tol=1e-6):
             raise ValueError(f"Existing beam COMET mean differs for {pair}")
     provenance = {"dataset": dataset_hash, "beam": baseline_hash,
-                  "existing_comet_report": file_hash(EXISTING_METRICS),
-                  "existing_comet_scores": file_hash(EXISTING_SCORES)}
-    for method, folder in (("top_k", args.top_k_dir), ("top_p", args.top_p_dir)):
+                  "existing_comet_report": file_hash(existing_metrics),
+                  "existing_comet_scores": file_hash(existing_scores)}
+    folders = {
+        "top_k": args.top_k_dir or decoding_dir / "validation_top_k_k50_n3_t0p8_seed42",
+        "top_p": args.top_p_dir or decoding_dir / "validation_top_p_p0p9_n3_t0p8_seed42",
+    }
+    for method, folder in folders.items():
         folder = folder if folder.is_absolute() else PROJECT_ROOT / folder
         report_path, prediction_path = folder / "metrics.json", folder / "predictions.csv"
         report = json.loads(report_path.read_text(encoding="utf-8"))
         config = report["config"]
-        if (config["dataset"] != "europarl_multidoc_v2" or config["split"] != SPLIT
+        if (config["dataset"] != f"europarl_{args.dataset}" or config["split"] != SPLIT
                 or config["method"] != method or config.get("limit_per_pair") != 0
                 or report.get("smoke_test") or config["dataset_sha256"] != dataset_hash
                 or config["baseline_sha256"] != baseline_hash
@@ -95,6 +98,10 @@ def inputs(args):
                 or (method == "top_k" and config["top_p"] != 1.0)
                 or (method == "top_p" and config["top_k"] != 0)):
             raise ValueError(f"{method}: sampling metrics have different provenance")
+        adapter_weights = PROJECT_ROOT / "outputs/checkpoints" / f"context_lora_balanced_{args.dataset}" / "final_adapter" / "adapter_model.safetensors"
+        if (Path(config["adapter"]) != adapter_weights.parent or
+                config["adapter_sha256"] != file_hash(adapter_weights)):
+            raise ValueError(f"{method}: adapter differs from the frozen context model")
         if report["reranker"]["candidate_sha256"] != file_hash(folder / "candidates.jsonl"):
             raise ValueError(f"{method}: candidates changed after reranking")
         selected = read_table(prediction_path, SPLIT)
@@ -109,7 +116,7 @@ def inputs(args):
         provenance[method] = {"directory": str(folder), "predictions_sha256": file_hash(prediction_path),
                               "metrics_sha256": file_hash(report_path), "generation": config,
                               "reranker": report["reranker"]}
-    return table, existing, provenance
+    return table, existing, provenance, decoding_dir
 
 
 def summarize(table):
@@ -130,7 +137,7 @@ def summarize(table):
 
 def main():
     args = arguments()
-    table, existing, provenance = inputs(args)
+    table, existing, provenance, decoding_dir = inputs(args)
     import torch
     if args.device == "cuda" and not torch.cuda.is_available():
         raise RuntimeError("CUDA is unavailable in the COMET environment")
@@ -152,11 +159,11 @@ def main():
         table[f"{method}_comet"] = validate_scores(predicted.scores, len(table))
         table[f"{method}_comet_delta"] = table[f"{method}_comet"] - table["beam_comet"]
     summary = summarize(table)
-    output_dir = DECODING / "validation_comet_comparison"
+    output_dir = decoding_dir / "validation_comet_comparison"
     scores_path, metrics_path = output_dir / "all_examples.csv", output_dir / "metrics.json"
     write_csv(scores_path, table)
     write_json(metrics_path, {"metric_model": MODEL_NAME, "checkpoint_sha256": checkpoint_hash,
-                              "split": SPLIT, "dataset": "multidoc_v2", "provenance": provenance,
+                              "split": SPLIT, "dataset": args.dataset, "provenance": provenance,
                               "device": args.device, "batch_size": args.batch_size,
                               "versions": {name: version(name) for name in
                                            ("unbabel-comet", "torch", "transformers", "pytorch-lightning", "pandas")},
