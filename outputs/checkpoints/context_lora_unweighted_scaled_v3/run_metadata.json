@@ -1,0 +1,78 @@
+{
+  "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+  "experiment": "context_lora_unweighted",
+  "data_directory": "D:\\CIS600\\context-mt\\data\\processed\\europarl_scaled_v3",
+  "dataset_files": {
+    "train": {
+      "path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_scaled_v3\\train.csv",
+      "sha256": "dfaff398f114e35662c8a62e390c234d67217e0d58b5f3cb2eef92bd7fbebd04",
+      "num_examples": 12000,
+      "num_documents": 400,
+      "pair_counts": {
+        "en-fr": 4000,
+        "en-de": 8000
+      }
+    },
+    "validation": {
+      "path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_scaled_v3\\validation.csv",
+      "sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+      "num_examples": 1500,
+      "num_documents": 100,
+      "pair_counts": {
+        "en-de": 1000,
+        "en-fr": 500
+      }
+    }
+  },
+  "resumed_from_checkpoint": null,
+  "input_mode": "context_v1",
+  "input_format": "src </s> previous_src",
+  "source_truncation_side": "right",
+  "target_truncation_side": "right",
+  "loss_mode": "unweighted",
+  "training_objective": "mean(normalized_pair_weight * mean_valid_token_CE_per_sentence)",
+  "validation_objective": "legacy_per_batch_weighted_mean_of_sentence_CE",
+  "raw_pair_weights": {
+    "en-fr": 1.7320508075688772,
+    "en-de": 1.224744871391589
+  },
+  "weight_normalization": 1.3938468501173518,
+  "train_batch_size": 1,
+  "gradient_accumulation_steps": 8,
+  "seed": 42,
+  "best_model_checkpoint": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_unweighted_scaled_v3\\checkpoint-3000",
+  "best_metric": 1.0434764623641968,
+  "training_mode": "full_training",
+  "max_steps": -1,
+  "epochs": 3.0,
+  "max_length": 128,
+  "source_max_length": 128,
+  "target_max_length": 128,
+  "pair_counts": {
+    "en-fr": 4000,
+    "en-de": 8000
+  },
+  "pair_weights": {
+    "en-fr": 1.0,
+    "en-de": 1.0
+  },
+  "lora": {
+    "r": 8,
+    "alpha": 16,
+    "dropout": 0.05,
+    "target_modules": [
+      "q_proj",
+      "v_proj"
+    ]
+  },
+  "train_metrics": {
+    "train_runtime": 11032.1209,
+    "train_samples_per_second": 3.263,
+    "train_steps_per_second": 0.408,
+    "total_flos": 5060829715365888.0,
+    "train_loss": 1.0305398750305175,
+    "epoch": 3.0
+  },
+  "elapsed_minutes": 183.87208527326584,
+  "peak_allocated_vram_gb": 1.6951971054077148
+}

@@ -1,0 +1,164 @@
+{
+  "metric_model": "Unbabel/wmt22-comet-da",
+  "checkpoint_path": "D:\\CIS600\\context-mt\\.cache\\huggingface\\hub\\models--Unbabel--wmt22-comet-da\\snapshots\\2760a223ac957f30acfb18c8aa649b01cf1d75f2\\checkpoints\\model.ckpt",
+  "checkpoint_sha256": "e213091cde220f97b89f8bdfa750c458cfea741ad62affb455b59900210ff2af",
+  "split": "validation",
+  "dataset": "scaled_v3",
+  "smoke_test": false,
+  "num_examples_per_arm": 1500,
+  "batch_size": 4,
+  "num_workers": 0,
+  "length_batching": false,
+  "precision": "float32",
+  "float32_matmul_precision": "highest",
+  "seed": 42,
+  "device": "cuda",
+  "device_name": "NVIDIA GeForce RTX 5070 Laptop GPU",
+  "inputs": {
+    "dataset": {
+      "path": "D:\\CIS600\\context-mt\\data\\processed\\europarl_scaled_v3\\validation.csv",
+      "sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9"
+    },
+    "A": {
+      "path": "D:\\CIS600\\context-mt\\outputs\\predictions\\sentence_lora_balanced_scaled_v3_validation.csv",
+      "sha256": "27a2ce9567da4767aa33988fdacfb10293238c3724101bac539023be45cfb932"
+    },
+    "B": {
+      "path": "D:\\CIS600\\context-mt\\outputs\\predictions\\context_lora_balanced_scaled_v3_validation.csv",
+      "sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb"
+    },
+    "C": {
+      "path": "D:\\CIS600\\context-mt\\outputs\\predictions\\sentence_lora_balanced_scaled_v3_llm_validation.csv",
+      "sha256": "28e762cc69eedbd41b93c5b91e8c1b9499f69c912d4a5f94e116055833d204f8"
+    },
+    "D": {
+      "path": "D:\\CIS600\\context-mt\\outputs\\predictions\\context_lora_balanced_scaled_v3_llm_validation.csv",
+      "sha256": "c9447b305ee9b9d40cc8b1ad0b532f95955d4c4edae61013907f3f8616e090bd"
+    }
+  },
+  "versions": {
+    "unbabel-comet": "2.2.7",
+    "torch": "2.8.0+cu128",
+    "transformers": "4.57.6",
+    "pytorch-lightning": "2.6.6",
+    "pandas": "3.0.6"
+  },
+  "score_scale": "raw, unscaled; higher is better; no clipping",
+  "macro_definition": "unweighted mean of the en-de and en-fr mean scores",
+  "evaluation_input": "same current source sentence and reference for every arm; no previous sentence",
+  "arms": {
+    "A": {
+      "model": "sentence_lora_balanced_scaled_v3",
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8685406448245049
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8711878749132156
+        }
+      },
+      "macro_average_comet": 0.8698642598688602,
+      "overall_mean_comet": 0.8694230548540751
+    },
+    "B": {
+      "model": "context_lora_balanced_scaled_v3",
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8697700807452202
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8701960905790329
+        }
+      },
+      "macro_average_comet": 0.8699830856621266,
+      "overall_mean_comet": 0.8699120840231578
+    },
+    "C": {
+      "model": "sentence_lora_balanced_scaled_v3_llm",
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8683382208347321
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8691264589428902
+        }
+      },
+      "macro_average_comet": 0.8687323398888112,
+      "overall_mean_comet": 0.8686009668707848
+    },
+    "D": {
+      "model": "context_lora_balanced_scaled_v3_llm",
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8687315281629563
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8723032897114754
+        }
+      },
+      "macro_average_comet": 0.8705174089372159,
+      "overall_mean_comet": 0.869922115345796
+    }
+  },
+  "comparisons": {
+    "context_without_llm": {
+      "before": "A",
+      "after": "B",
+      "macro_comet_delta": 0.00011882579326638609,
+      "pairs": {
+        "en-de": 0.001229435920715332,
+        "en-fr": -0.0009917843341827393
+      },
+      "higher_by_comet": 390,
+      "lower_by_comet": 356,
+      "tied_by_comet": 754
+    },
+    "llm_sentence": {
+      "before": "A",
+      "after": "C",
+      "macro_comet_delta": -0.0011319199800490232,
+      "pairs": {
+        "en-de": -0.00020242398977279662,
+        "en-fr": -0.00206141597032547
+      },
+      "higher_by_comet": 620,
+      "lower_by_comet": 610,
+      "tied_by_comet": 270
+    },
+    "llm_context": {
+      "before": "B",
+      "after": "D",
+      "macro_comet_delta": 0.0005343232750892879,
+      "pairs": {
+        "en-de": -0.0010385525822639466,
+        "en-fr": 0.0021071991324424742
+      },
+      "higher_by_comet": 456,
+      "lower_by_comet": 390,
+      "tied_by_comet": 654
+    },
+    "context_with_llm": {
+      "before": "C",
+      "after": "D",
+      "macro_comet_delta": 0.0017850690484046972,
+      "pairs": {
+        "en-de": 0.0003933073282241821,
+        "en-fr": 0.003176830768585205
+      },
+      "higher_by_comet": 618,
+      "lower_by_comet": 486,
+      "tied_by_comet": 396
+    }
+  },
+  "elapsed_minutes": 3.9145988933334595,
+  "peak_allocated_vram_gib": 2.2910704612731934,
+  "score_table": "D:\\CIS600\\context-mt\\outputs\\analysis\\comet_validation_scaled_v3\\all_examples.csv"
+}

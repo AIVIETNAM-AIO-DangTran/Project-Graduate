@@ -1,0 +1,573 @@
+{
+  "evaluation_type": "AI-assisted, not independent human annotation",
+  "dataset": "scaled_v3",
+  "split": "validation",
+  "total_items": 60,
+  "sampling_note": "Random cue and non-cue rows are exploratory samples of changed outputs; COMET extremes are diagnostic only.",
+  "comparisons": {
+    "context": {
+      "random": {
+        "en-de": {
+          "n": 8,
+          "meaning": {
+            "after": 5,
+            "before": 3,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 5,
+            "before": 3,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 3,
+          "pronoun_issue": 2,
+          "term_issue": 3
+        },
+        "en-fr": {
+          "n": 8,
+          "meaning": {
+            "after": 2,
+            "before": 5,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 1,
+            "before": 7,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 0,
+            "after": 0
+          },
+          "context_relevant": 4,
+          "pronoun_issue": 1,
+          "term_issue": 3
+        },
+        "both": {
+          "n": 16,
+          "meaning": {
+            "after": 7,
+            "before": 8,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 6,
+            "before": 10,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 7,
+          "pronoun_issue": 3,
+          "term_issue": 6
+        }
+      },
+      "extremes": {
+        "en-de": {
+          "n": 2,
+          "meaning": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 1
+          },
+          "context_relevant": 0,
+          "pronoun_issue": 0,
+          "term_issue": 0
+        },
+        "en-fr": {
+          "n": 2,
+          "meaning": {
+            "after": 2,
+            "before": 0,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 0
+          },
+          "context_relevant": 1,
+          "pronoun_issue": 0,
+          "term_issue": 1
+        },
+        "both": {
+          "n": 4,
+          "meaning": {
+            "after": 3,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 2,
+            "before": 2,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 1,
+          "pronoun_issue": 0,
+          "term_issue": 1
+        }
+      },
+      "all": {
+        "en-de": {
+          "n": 10,
+          "meaning": {
+            "after": 6,
+            "before": 4,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 6,
+            "before": 4,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 3,
+            "after": 2
+          },
+          "context_relevant": 3,
+          "pronoun_issue": 2,
+          "term_issue": 3
+        },
+        "en-fr": {
+          "n": 10,
+          "meaning": {
+            "after": 4,
+            "before": 5,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 2,
+            "before": 8,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 0
+          },
+          "context_relevant": 5,
+          "pronoun_issue": 1,
+          "term_issue": 4
+        },
+        "both": {
+          "n": 20,
+          "meaning": {
+            "after": 10,
+            "before": 9,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 8,
+            "before": 12,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 4,
+            "after": 2
+          },
+          "context_relevant": 8,
+          "pronoun_issue": 3,
+          "term_issue": 7
+        }
+      }
+    },
+    "llm_sentence": {
+      "random": {
+        "en-de": {
+          "n": 8,
+          "meaning": {
+            "after": 5,
+            "before": 2,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 4,
+            "before": 3,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 1
+          },
+          "context_relevant": 4,
+          "pronoun_issue": 3,
+          "term_issue": 7
+        },
+        "en-fr": {
+          "n": 8,
+          "meaning": {
+            "after": 4,
+            "before": 3,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 4,
+            "before": 3,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 0,
+            "after": 2
+          },
+          "context_relevant": 4,
+          "pronoun_issue": 2,
+          "term_issue": 4
+        },
+        "both": {
+          "n": 16,
+          "meaning": {
+            "after": 9,
+            "before": 5,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 8,
+            "before": 6,
+            "tie": 2
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 3
+          },
+          "context_relevant": 8,
+          "pronoun_issue": 5,
+          "term_issue": 11
+        }
+      },
+      "extremes": {
+        "en-de": {
+          "n": 2,
+          "meaning": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 1,
+          "pronoun_issue": 0,
+          "term_issue": 0
+        },
+        "en-fr": {
+          "n": 2,
+          "meaning": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 2,
+          "pronoun_issue": 1,
+          "term_issue": 0
+        },
+        "both": {
+          "n": 4,
+          "meaning": {
+            "after": 2,
+            "before": 2,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 2,
+            "before": 2,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 4,
+            "after": 2
+          },
+          "context_relevant": 3,
+          "pronoun_issue": 1,
+          "term_issue": 0
+        }
+      },
+      "all": {
+        "en-de": {
+          "n": 10,
+          "meaning": {
+            "after": 6,
+            "before": 3,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 5,
+            "before": 4,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 3,
+            "after": 2
+          },
+          "context_relevant": 5,
+          "pronoun_issue": 3,
+          "term_issue": 7
+        },
+        "en-fr": {
+          "n": 10,
+          "meaning": {
+            "after": 5,
+            "before": 4,
+            "tie": 1
+          },
+          "fluency": {
+            "after": 5,
+            "before": 4,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 3
+          },
+          "context_relevant": 6,
+          "pronoun_issue": 3,
+          "term_issue": 4
+        },
+        "both": {
+          "n": 20,
+          "meaning": {
+            "after": 11,
+            "before": 7,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 10,
+            "before": 8,
+            "tie": 2
+          },
+          "critical_errors": {
+            "before": 5,
+            "after": 5
+          },
+          "context_relevant": 11,
+          "pronoun_issue": 6,
+          "term_issue": 11
+        }
+      }
+    },
+    "llm_context": {
+      "random": {
+        "en-de": {
+          "n": 8,
+          "meaning": {
+            "after": 4,
+            "before": 2,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 4,
+            "before": 3,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 5,
+            "after": 3
+          },
+          "context_relevant": 5,
+          "pronoun_issue": 1,
+          "term_issue": 4
+        },
+        "en-fr": {
+          "n": 8,
+          "meaning": {
+            "after": 3,
+            "before": 3,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 3,
+            "before": 4,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 0
+          },
+          "context_relevant": 5,
+          "pronoun_issue": 1,
+          "term_issue": 4
+        },
+        "both": {
+          "n": 16,
+          "meaning": {
+            "after": 7,
+            "before": 5,
+            "tie": 4
+          },
+          "fluency": {
+            "after": 7,
+            "before": 7,
+            "tie": 2
+          },
+          "critical_errors": {
+            "before": 6,
+            "after": 3
+          },
+          "context_relevant": 10,
+          "pronoun_issue": 2,
+          "term_issue": 8
+        }
+      },
+      "extremes": {
+        "en-de": {
+          "n": 2,
+          "meaning": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 1
+          },
+          "context_relevant": 1,
+          "pronoun_issue": 1,
+          "term_issue": 0
+        },
+        "en-fr": {
+          "n": 2,
+          "meaning": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 1,
+            "before": 1,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 1,
+            "after": 1
+          },
+          "context_relevant": 2,
+          "pronoun_issue": 1,
+          "term_issue": 0
+        },
+        "both": {
+          "n": 4,
+          "meaning": {
+            "after": 2,
+            "before": 2,
+            "tie": 0
+          },
+          "fluency": {
+            "after": 2,
+            "before": 2,
+            "tie": 0
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 2
+          },
+          "context_relevant": 3,
+          "pronoun_issue": 2,
+          "term_issue": 0
+        }
+      },
+      "all": {
+        "en-de": {
+          "n": 10,
+          "meaning": {
+            "after": 5,
+            "before": 3,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 5,
+            "before": 4,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 6,
+            "after": 4
+          },
+          "context_relevant": 6,
+          "pronoun_issue": 2,
+          "term_issue": 4
+        },
+        "en-fr": {
+          "n": 10,
+          "meaning": {
+            "after": 4,
+            "before": 4,
+            "tie": 2
+          },
+          "fluency": {
+            "after": 4,
+            "before": 5,
+            "tie": 1
+          },
+          "critical_errors": {
+            "before": 2,
+            "after": 1
+          },
+          "context_relevant": 7,
+          "pronoun_issue": 2,
+          "term_issue": 4
+        },
+        "both": {
+          "n": 20,
+          "meaning": {
+            "after": 9,
+            "before": 7,
+            "tie": 4
+          },
+          "fluency": {
+            "after": 9,
+            "before": 9,
+            "tie": 2
+          },
+          "critical_errors": {
+            "before": 8,
+            "after": 5
+          },
+          "context_relevant": 13,
+          "pronoun_issue": 4,
+          "term_issue": 8
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,11 @@
+data/processed/europarl_scaled_v3/** -text
+outputs/checkpoints/*_scaled_v3/** -text
+outputs/predictions/*scaled_v3*.csv -text
+outputs/metrics/*scaled_v3* -text
+outputs/metrics/europarl_scaled_v3/** -text
+outputs/analysis/*scaled_v3*/** -text
+outputs/analysis/*scaled_v3*.csv -text
+outputs/decoding/scaled_v3/** -text
+outputs/figures/eda_scaled_v3/** -text
+outputs/postediting/*scaled_v3*/** -text
+outputs/notebooks/*scaled_v3*.ipynb -text

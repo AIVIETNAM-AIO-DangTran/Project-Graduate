@@ -1,0 +1,7 @@
+split,pair,num_examples
+train,en-fr,4000
+train,en-de,8000
+validation,en-de,1000
+validation,en-fr,500
+test,en-fr,500
+test,en-de,1000
