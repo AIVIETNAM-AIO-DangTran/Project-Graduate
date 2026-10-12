@@ -29,24 +29,42 @@ VARIANTS = {
         "format": "src",
         "truncation_side": "right",
         "dataset": "europarl_multidoc_v2",
+        "loss_mode": "balanced",
     },
     "context_balanced_multidoc_v2": {
         "directory": "context_lora_balanced_multidoc_v2",
         "format": "src </s> previous_src",
         "truncation_side": "right",
         "dataset": "europarl_multidoc_v2",
+        "loss_mode": "balanced",
     },
     "sentence_balanced_scaled_v3": {
         "directory": "sentence_lora_balanced_scaled_v3",
         "format": "src",
         "truncation_side": "right",
         "dataset": "europarl_scaled_v3",
+        "loss_mode": "balanced",
     },
     "context_balanced_scaled_v3": {
         "directory": "context_lora_balanced_scaled_v3",
         "format": "src </s> previous_src",
         "truncation_side": "right",
         "dataset": "europarl_scaled_v3",
+        "loss_mode": "balanced",
+    },
+    "sentence_unweighted_scaled_v3": {
+        "directory": "sentence_lora_unweighted_scaled_v3",
+        "format": "src",
+        "truncation_side": "right",
+        "dataset": "europarl_scaled_v3",
+        "loss_mode": "unweighted",
+    },
+    "context_unweighted_scaled_v3": {
+        "directory": "context_lora_unweighted_scaled_v3",
+        "format": "src </s> previous_src",
+        "truncation_side": "right",
+        "dataset": "europarl_scaled_v3",
+        "loss_mode": "unweighted",
     },
 }
 
@@ -54,8 +72,8 @@ VARIANTS = {
 def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument(
-        "--variant", choices=("multidoc_balanced", "scaled_balanced", *VARIANTS), default="multidoc_balanced",
-        help="One adapter or both multidoc v2 balanced adapters.",
+        "--variant", choices=("multidoc_balanced", "scaled_balanced", "scaled_ablation", *VARIANTS), default="multidoc_balanced",
+        help="One adapter, both balanced adapters, or all four scaled v3 ablation adapters.",
     )
     parser.add_argument(
         "--split", choices=("validation", "test"), default="validation"
@@ -87,15 +105,17 @@ def load_split(split, data_dir):
     return data, dataset_path
 
 
-def check_v2_training_metadata(settings, data_dir):
+def check_training_metadata(settings, data_dir):
     directory = settings["directory"]
     metadata_path = PROJECT_ROOT / "outputs/checkpoints" / directory / "run_metadata.json"
     metadata = json.loads(metadata_path.read_text(encoding="utf-8"))
     if (metadata.get("input_format") != settings["format"] or
             metadata.get("source_truncation_side") != settings["truncation_side"] or
             metadata.get("max_length") != MAX_LENGTH or
-            metadata.get("loss_mode") != "balanced" or
-            metadata.get("training_mode") != "full_training"):
+            metadata.get("loss_mode") != settings["loss_mode"] or
+            metadata.get("training_mode") != "full_training" or
+            metadata.get("seed") != 42 or
+            metadata.get("epochs") != 3.0):
         raise ValueError(f"Training configuration mismatch: {metadata_path}")
     for split in ("train", "validation"):
         csv_path = data_dir / f"{split}.csv"
@@ -230,6 +250,9 @@ def main():
         variants = ["sentence_balanced_multidoc_v2", "context_balanced_multidoc_v2"]
     elif args.variant == "scaled_balanced":
         variants = ["sentence_balanced_scaled_v3", "context_balanced_scaled_v3"]
+    elif args.variant == "scaled_ablation":
+        variants = ["sentence_balanced_scaled_v3", "context_balanced_scaled_v3",
+                    "sentence_unweighted_scaled_v3", "context_unweighted_scaled_v3"]
     else:
         variants = [args.variant]
     dataset_names = {VARIANTS[v]["dataset"] for v in variants}
@@ -243,7 +266,7 @@ def main():
         for filename in ("adapter_config.json", "adapter_model.safetensors"):
             if not (adapter_path / filename).is_file():
                 raise FileNotFoundError(f"Missing adapter file: {adapter_path / filename}")
-        check_v2_training_metadata(VARIANTS[variant], data_dir)
+        check_training_metadata(VARIANTS[variant], data_dir)
     data, dataset_path = load_split(args.split, data_dir)
     dataset_hash = hashlib.sha256(dataset_path.read_bytes()).hexdigest()
     print(f"Device: {torch.cuda.get_device_name(0)}")
