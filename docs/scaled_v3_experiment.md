@@ -1,5 +1,7 @@
 # Scaled Europarl v3 experiment
 
+**Status (October 2026):** The dataset, four balanced/unweighted models, validation/test A/B/C/D evaluation, and validation-only Top-k/Top-p ablations have been completed. The sections below preserve the original run plan and commands; see [the completed results](scaled_v3_results.md). Document-level uncertainty and independent human evaluation remain open.
+
 This is the next, larger controlled experiment. It does not replace the published multidoc v2 results. The proposal permits controlled Europarl subsets; evaluating every sentence of the raw corpus is a different and much more expensive study. The existing v2 test was already evaluated in full (all 150 rows).
 
 ## Design and gates
