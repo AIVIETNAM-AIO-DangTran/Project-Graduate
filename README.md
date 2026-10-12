@@ -29,7 +29,7 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 ## Files and use
 
 - `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis. Analysis entry points default to scaled v3; pass `--dataset` or `--data-dir` explicitly to examine a different dataset.
-- `notebooks/01_europarl_eda.ipynb` (v3 EDA) and `02_experiment_analysis.ipynb` (v3 results, validation/test selected by `EXPERIMENT_SPLIT`). The older `03_scaled_v3_analysis.ipynb` entry point is retained for compatibility; v2 outputs remain available in Git history.
+- `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
 - `demo_v3.py` and `docs/demo_v3.md`: local A/B/C/D demo and installation commands.
@@ -40,9 +40,9 @@ The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COME
 
 ```powershell
 $env:EXPERIMENT_SPLIT = "validation"
-jupyter nbconvert --to notebook --execute notebooks\02_experiment_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_validation.ipynb
+jupyter nbconvert --to notebook --execute notebooks\02_experiment_analysis.ipynb --output-dir outputs\notebooks --output 02_scaled_v3_validation.ipynb
 $env:EXPERIMENT_SPLIT = "test"
-jupyter nbconvert --to notebook --execute notebooks\03_scaled_v3_analysis.ipynb --output-dir outputs\notebooks --output 03_scaled_v3_test.ipynb
+jupyter nbconvert --to notebook --execute notebooks\02_experiment_analysis.ipynb --output-dir outputs\notebooks --output 02_scaled_v3_test.ipynb
 ```
 
 Raw archives, virtual environments, Hugging Face caches and intermediate training checkpoints are not committed. The v3 findings are descriptive for this controlled sample and one training seed.
