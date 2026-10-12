@@ -1,7 +1,0 @@
-split,pair,num_examples
-train,en-fr,400
-train,en-de,800
-validation,en-fr,50
-validation,en-de,100
-test,en-fr,50
-test,en-de,100

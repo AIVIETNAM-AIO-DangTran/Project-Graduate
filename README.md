@@ -29,14 +29,14 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 ## Files and use
 
 - `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis.
-- `notebooks/01_europarl_eda.ipynb` (v3 EDA) and `02_experiment_analysis.ipynb` (v3 results, validation/test selected by `EXPERIMENT_SPLIT`). The older `03_scaled_v3_analysis.ipynb` entry point is retained for compatibility; v2 outputs remain in Git history and saved results.
+- `notebooks/01_europarl_eda.ipynb` (v3 EDA) and `02_experiment_analysis.ipynb` (v3 results, validation/test selected by `EXPERIMENT_SPLIT`). The older `03_scaled_v3_analysis.ipynb` entry point is retained for compatibility; v2 outputs remain available in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
 - `demo_v3.py` and `docs/demo_v3.md`: local A/B/C/D demo and installation commands.
-- `data/processed/europarl_scaled_v3/` and `outputs/`: working-project datasets, adapters, predictions and reports; check their availability in the local Windows project before reproduction. Some large v3 artifacts have not yet been copied to this GitHub repository.
-- `data/processed/europarl_multidoc_v2/` and v2 result directories: the earlier, separate study. Do not compare raw v2 and v3 scores as a matched improvement.
+- `data/processed/europarl_scaled_v3/` and `outputs/`: working-project datasets, adapters, predictions and reports; check their availability in the local Windows project before reproduction. The complete frozen v3 artifacts are included in this repository.
+- `data/processed/europarl_multidoc_v2/` : retained to reproduce the v3 document exclusions. Earlier v2 results remain in Git history. Do not compare raw v2 and v3 scores as a matched improvement.
 
-The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. For the v3 notebook after syncing the v3 artifacts into the working project:
+The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
 
 ```powershell
 $env:EXPERIMENT_SPLIT = "validation"
