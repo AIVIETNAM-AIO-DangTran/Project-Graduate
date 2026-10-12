@@ -1,8 +1,8 @@
-"""Optional multidoc v2 Top-k/Top-p candidate generation and blind LLM reranking.
+"""Top-k/Top-p candidate generation and blind LLM reranking for frozen datasets.
 
 Run three stages separately: generate (mBART GPU), rerank (local Ollama), score.
 No reference translation is sent to Ollama. The frozen A/B/C/D outputs are
-read-only; every decoding experiment writes into outputs/decoding/multidoc_v2.
+read-only; each dataset has a separate directory under outputs/decoding.
 """
 
 import argparse
@@ -17,8 +17,6 @@ import urllib.request
 ROOT = Path(__file__).resolve().parents[1]
 os.environ.setdefault("HF_HOME", str(ROOT / ".cache" / "huggingface"))
 MODEL = "facebook/mbart-large-50-many-to-many-mmt"
-ADAPTER = ROOT / "outputs/checkpoints/context_lora_balanced_multidoc_v2/final_adapter"
-DATA = ROOT / "data/processed/europarl_multidoc_v2"
 PREDICTIONS = ROOT / "outputs/predictions"
 PAIR_CODES = {"en-de": "de_DE", "en-fr": "fr_XX"}
 KEYS = ("pair", "doc_id", "src_sent_id", "tgt_sent_id")
@@ -28,6 +26,7 @@ MAX_LENGTH = 128
 
 def arguments():
     parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="multidoc_v2")
     parser.add_argument("--stage", choices=("generate", "rerank", "score"), required=True)
     parser.add_argument("--method", choices=("top_k", "top_p"), required=True)
     parser.add_argument("--split", choices=("validation", "test"), default="validation")
@@ -46,6 +45,14 @@ def arguments():
     if not 0 < args.temperature <= 2 or args.limit_per_pair < 0:
         parser.error("temperature must be in (0, 2]; limit-per-pair must be nonnegative.")
     return args
+
+
+def adapter_dir(args):
+    return ROOT / "outputs/checkpoints" / f"context_lora_balanced_{args.dataset}" / "final_adapter"
+
+
+def data_dir(args):
+    return ROOT / "data/processed" / f"europarl_{args.dataset}"
 
 
 def digest(path):
@@ -69,13 +76,13 @@ def key(row):
 
 
 def read_inputs(args):
-    dataset_path = DATA / f"{args.split}.csv"
-    manifest = json.loads((DATA / "summary.json").read_text(encoding="utf-8"))
+    dataset_path = data_dir(args) / f"{args.split}.csv"
+    manifest = json.loads((data_dir(args) / "summary.json").read_text(encoding="utf-8"))
     dataset_hash = digest(dataset_path)
     if dataset_hash != manifest["csv_sha256"][args.split]:
-        raise ValueError("Dataset CSV differs from multidoc v2 manifest.")
-    baseline_path = PREDICTIONS / f"context_lora_balanced_multidoc_v2_{args.split}.csv"
-    metric_path = ROOT / f"outputs/metrics/context_lora_balanced_multidoc_v2_{args.split}_metrics.json"
+        raise ValueError(f"Dataset CSV differs from {args.dataset} manifest.")
+    baseline_path = PREDICTIONS / f"context_lora_balanced_{args.dataset}_{args.split}.csv"
+    metric_path = ROOT / "outputs/metrics" / f"context_lora_balanced_{args.dataset}_{args.split}_metrics.json"
     metric = json.loads(metric_path.read_text(encoding="utf-8"))
     if metric.get("dataset_sha256") != dataset_hash or metric.get("split") != args.split:
         raise ValueError("Frozen beam baseline has a different dataset hash or split.")
@@ -113,20 +120,21 @@ def read_inputs(args):
 def output_directory(args):
     setting = f"k{args.top_k}" if args.method == "top_k" else f"p{str(args.top_p).replace('.', 'p')}"
     suffix = f"_smoke{args.limit_per_pair}" if args.limit_per_pair else ""
-    return ROOT / "outputs/decoding/multidoc_v2" / (
+    return ROOT / "outputs/decoding" / args.dataset / (
         f"{args.split}_{args.method}_{setting}_n{args.samples}_t{str(args.temperature).replace('.', 'p')}"
         f"_seed{args.seed}{suffix}"
     )
 
 
 def configuration(args, dataset_hash, baseline_hash):
-    adapter_weights = ADAPTER / "adapter_model.safetensors"
+    adapter = adapter_dir(args)
+    adapter_weights = adapter / "adapter_model.safetensors"
     if not adapter_weights.is_file():
         raise FileNotFoundError(adapter_weights)
     return {
-        "dataset": "europarl_multidoc_v2", "split": args.split,
+        "dataset": f"europarl_{args.dataset}", "split": args.split,
         "dataset_sha256": dataset_hash, "baseline_sha256": baseline_hash,
-        "adapter": str(ADAPTER), "adapter_sha256": digest(adapter_weights),
+        "adapter": str(adapter), "adapter_sha256": digest(adapter_weights),
         "base_model": MODEL,
         "input_format": "src </s> previous_src", "source_truncation_side": "right",
         "max_length": MAX_LENGTH, "method": args.method, "samples": args.samples,
@@ -173,9 +181,10 @@ def generate(args, ordered, config, folder):
     from peft import PeftModel
     from transformers import MBart50TokenizerFast, MBartForConditionalGeneration
 
+    adapter = adapter_dir(args)
     for name in ("adapter_config.json", "adapter_model.safetensors"):
-        if not (ADAPTER / name).is_file():
-            raise FileNotFoundError(ADAPTER / name)
+        if not (adapter / name).is_file():
+            raise FileNotFoundError(adapter / name)
     metadata = folder / "generation_metadata.json"
     check_metadata(metadata, config)
     destination = folder / "candidates.jsonl"
@@ -189,7 +198,7 @@ def generate(args, ordered, config, folder):
     tokenizer.src_lang = "en_XX"
     tokenizer.truncation_side = "right"
     model = MBartForConditionalGeneration.from_pretrained(MODEL, dtype=torch.float16).to("cuda")
-    model = PeftModel.from_pretrained(model, str(ADAPTER)).merge_and_unload().eval()
+    model = PeftModel.from_pretrained(model, str(adapter)).merge_and_unload().eval()
     print(f"Generating {args.method} candidates: {len(completed)}/{len(ordered)} saved")
     for index in range(len(completed), len(ordered)):
         row = ordered[index]
