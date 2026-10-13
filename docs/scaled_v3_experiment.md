@@ -21,14 +21,14 @@ First synchronize the updated scripts from the Git checkout to the original work
 ```powershell
 cd D:\CIS600\Project-Graduate-upload
 git pull --ff-only origin main
-Copy-Item .\scripts\build_europarl_multidoc.py, .\scripts\eda_europarl.py, .\scripts\evaluate_lora_validation.py, .\scripts\postedit_lora.py, .\scripts\evaluate_comet.py D:\CIS600\context-mt\scripts\ -Force
+Copy-Item .\scripts\02_build_europarl_multidoc.py, .\scripts\03_eda_europarl.py, .\scripts\05_evaluate_lora.py, .\scripts\06_postedit_lora.py, .\scripts\07_evaluate_comet.py D:\CIS600\context-mt\scripts\ -Force
 cd D:\CIS600\context-mt
 ```
 
 Run the remaining commands from `D:\CIS600\context-mt` in the project's normal Python environment. The ignored raw Europarl archives in `data/raw/europarl/` and the existing pilot/v2 processed CSVs are required.
 
 ```powershell
-python scripts\build_europarl_multidoc.py `
+python scripts\02_build_europarl_multidoc.py `
   --output-dir data/processed/europarl_scaled_v3 `
   --exclude-dir data/processed/europarl_multidoc_v2 `
   --train-documents 400 `
@@ -36,12 +36,12 @@ python scripts\build_europarl_multidoc.py `
   --test-documents 100 `
   --candidate-multiplier 4
 
-python scripts\train_lora_balanced.py `
+python scripts\04_train_lora.py `
   --data-dir data/processed/europarl_scaled_v3 `
   --input-mode sentence --loss-mode balanced `
   --check-data-only
 
-python scripts\eda_europarl.py --dataset scaled_v3
+python scripts\03_eda_europarl.py --dataset scaled_v3
 ```
 
 Before training, check the printed counts, document isolation, `data/processed/europarl_scaled_v3/summary.json`, source lengths, and a manually inspected sample of en-de/en-fr source–target alignments from each split. If the builder cannot find 400/100/100 eligible documents, preserve the error and rerun with a **new output directory** and a documented smaller plan; never edit the frozen v2 CSVs.
@@ -51,12 +51,12 @@ Before training, check the printed counts, document isolation, `data/processed/e
 The commands below use the same 128-token maximum as v2. Review the new EDA truncation report before starting. If a larger maximum is needed, use it for both arms and update the evaluator consistently before running validation.
 
 ```powershell
-python scripts\train_lora_balanced.py `
+python scripts\04_train_lora.py `
   --data-dir data/processed/europarl_scaled_v3 `
   --input-mode sentence --loss-mode balanced --max-length 128 `
   --epochs 3 --output-dir outputs/checkpoints/sentence_lora_balanced_scaled_v3
 
-python scripts\train_lora_balanced.py `
+python scripts\04_train_lora.py `
   --data-dir data/processed/europarl_scaled_v3 `
   --input-mode context_v1 --loss-mode balanced --max-length 128 `
   --epochs 3 --output-dir outputs/checkpoints/context_lora_balanced_scaled_v3
@@ -67,12 +67,12 @@ Training creates `final_adapter/` and `run_metadata.json`. The evaluator checks 
 ## 3. Validation first
 
 ```powershell
-python scripts\evaluate_lora_validation.py --variant scaled_balanced --split validation
+python scripts\05_evaluate_lora.py --variant scaled_balanced --split validation
 
-python scripts\postedit_lora.py `
+python scripts\06_postedit_lora.py `
   --dataset scaled_v3 --split validation --variant both --model qwen2.5:7b
 
-.\.venv-comet\Scripts\python.exe scripts\evaluate_comet.py `
+.\.venv-comet\Scripts\python.exe scripts\07_evaluate_comet.py `
   --dataset scaled_v3 --split validation --device cuda --batch-size 4
 ```
 
@@ -81,12 +81,12 @@ Review the A/B/C/D results and prompt behavior, then freeze the settings. The ex
 ## 4. One final held-out test
 
 ```powershell
-python scripts\evaluate_lora_validation.py --variant scaled_balanced --split test
+python scripts\05_evaluate_lora.py --variant scaled_balanced --split test
 
-python scripts\postedit_lora.py `
+python scripts\06_postedit_lora.py `
   --dataset scaled_v3 --split test --variant both --model qwen2.5:7b
 
-.\.venv-comet\Scripts\python.exe scripts\evaluate_comet.py `
+.\.venv-comet\Scripts\python.exe scripts\07_evaluate_comet.py `
   --dataset scaled_v3 --split test --device cuda --batch-size 4
 ```
 

@@ -28,8 +28,23 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 
 ## Files and use
 
-- `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis. Analysis entry points default to scaled v3; pass `--dataset` or `--data-dir` explicitly to examine a different dataset.
-- `scripts/build_manual_review.py`: creates a blinded validation sheet and separate answer key with `--kind abcd` or `--kind decoding`. Existing saved review files do not need regeneration.
+The scripts are numbered by workflow stage. Steps 08–10 form an optional validation-only decoding branch; step 11 supports either the A/B/C/D or decoding review. The numbers are for navigation, not Python imports. Analysis commands default to scaled v3 unless `--dataset` or `--data-dir` is set.
+
+| Stage | Script | Purpose |
+| --- | --- | --- |
+| 01 | `scripts/01_download_europarl.py` | Download the Europarl archive |
+| 02 | `scripts/02_build_europarl_multidoc.py` | Build document-separated splits |
+| 03 | `scripts/03_eda_europarl.py` | Explore data and token lengths |
+| 04 | `scripts/04_train_lora.py` | Train balanced or unweighted LoRA |
+| 05 | `scripts/05_evaluate_lora.py` | Generate BLEU/chrF predictions |
+| 06 | `scripts/06_postedit_lora.py` | Post-edit with local Ollama |
+| 07 | `scripts/07_evaluate_comet.py` | Score A/B/C/D with COMET |
+| 08 | `scripts/08_sample_decoding.py` | Generate and rerank Top-k/Top-p candidates |
+| 09 | `scripts/09_evaluate_decoding_comet.py` | Score sampled decoding with COMET |
+| 10 | `scripts/10_analyze_decoding_effect.py` | Compare decoding errors |
+| 11 | `scripts/11_build_manual_review.py` | Build a blinded review sheet |
+| 12 | `scripts/12_summarize_abcd_review.py` | Summarize A/B/C/D judgments |
+
 - `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
