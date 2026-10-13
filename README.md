@@ -29,6 +29,7 @@ The best BLEU/chrF is A, while D has the highest COMET. Differences are small an
 ## Files and use
 
 - `scripts/`: build, EDA, train, evaluate, Qwen post-edit, COMET and sampling analysis. Analysis entry points default to scaled v3; pass `--dataset` or `--data-dir` explicitly to examine a different dataset.
+- `scripts/build_manual_review.py`: creates a blinded validation sheet and separate answer key with `--kind abcd` or `--kind decoding`. Existing saved review files do not need regeneration.
 - `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
