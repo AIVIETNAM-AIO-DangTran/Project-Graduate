@@ -1,0 +1,12 @@
+# Scaled v3 alignment spot check
+
+The deterministic audit (`scripts/14_audit_v3_alignment.py`, seed 20261013) checked all 15,000 frozen CSV rows against the manifest hashes, uniqueness, required context text, and cross-split document/current-source isolation. All structural checks passed: 12,000/1,500/1,500 rows from 400/100/100 disjoint documents. It selected 30 source–reference pairs: five distinct documents per language pair per split, one sentence per selected document, preferring English context-cue sentences where available. The unchanged review sheet is `alignment_review_blank.csv`.
+
+An **AI-assisted preliminary reading** of these 30 pairs is recorded separately in `ai_spotcheck.csv`: 27 appear semantically aligned, 2 are uncertain, and 1 has a likely contradiction. This is not an independent bilingual human annotation and cannot establish an error rate for all Europarl data. Source XML was not available to this audit, so adjacency of every `previous_src` remains unverified beyond the builder's logic.
+
+- **ALIGN-022, test en-de, `en/ep-97-11-20.xml`**: English `We do not regard this as a balance` versus German `Das verstehen wir unter Ausgewogenheit` reverses the negation at the start. The rest of the pair broadly corresponds. Flag for source/reference verification and discuss as a reference-quality limitation. Do **not** delete the row after seeing test scores or silently edit frozen CSVs.
+- **ALIGN-012, validation en-de**: the reference compresses the phrase about the *proportion of turnover invested in R&D* to an *R&D share*; check if acceptable paraphrase.
+- **ALIGN-029, test en-fr**: *nuclear weaponisation* becomes *déploiement d’armes nucléaires* (deployment of nuclear weapons), which may shift terminology.
+- **ALIGN-024, test en-de**: `previous_src` contains the unprocessed HTML entity pattern `& # 160;`, a minor source-cleaning artifact. It does not by itself establish a broken current-source alignment.
+
+Recommended human check: a German reviewer should check ALIGN-022 and ALIGN-012; a French reviewer should check ALIGN-029. Verify original sentence links and `previous_src` in the raw XML for those documents and a few random sample documents. Report verified counts and adjudicated examples separately. Existing model comparisons remain descriptive on the original frozen test set; this spot check does not justify refitting or retuning the models.
