@@ -52,7 +52,7 @@ The scripts are numbered by workflow stage. Steps 08–10 form an optional valid
 - `data/processed/europarl_scaled_v3/` and `outputs/`: working-project datasets, adapters, predictions and reports; check their availability in the local Windows project before reproduction. The complete frozen v3 artifacts are included in this repository.
 - `data/processed/europarl_pilot/` and `data/processed/europarl_multidoc_v2/`: small exclusion records required to reproduce the frozen v3 document selection. Model training and evaluation use `europarl_scaled_v3/`; earlier v2 results remain in Git history.
 
-The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
+The executed notebooks under `outputs/notebooks/` can be opened or rerun from the project folder or a nested notebook directory. Their validation/test copies are fixed to their named split; use `notebooks/02_experiment_analysis.ipynb` with `EXPERIMENT_SPLIT` to regenerate a different split.\n\nThe main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
 
 ```powershell
 $env:EXPERIMENT_SPLIT = "validation"
