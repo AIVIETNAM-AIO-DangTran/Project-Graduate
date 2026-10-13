@@ -48,11 +48,30 @@ An exploratory blind AI-assisted review of 16 random changed translations per co
 
 Compared on the same held-out examples, B−A is −0.10 macro BLEU, −0.07 chrF and about −0.0005 COMET. C−A is −0.72 BLEU, −0.39 chrF and about +0.0004 COMET. D−B is −0.26 BLEU, −0.17 chrF and about +0.0027 COMET. Qwen changed 1,230 C outputs and 806 D outputs. The highest macro COMET is D, while the highest macro BLEU and chrF are A. Balanced training beats the corresponding unweighted model by about 0.09 macro BLEU and 0.10 chrF for sentence input, and about 0.05 BLEU and 0.09 chrF for context input. The pair-level pattern is mixed; these differences do not establish a consistent quality gain.
 
+## Paired document-level uncertainty
+
+We drew 2,000 bootstrap resamples of **whole document IDs** from each split (100 documents, seed 20261013). Each draw keeps the en-de/en-fr sentences from the same sampled documents together and compares matched A, B and D predictions. Intervals are percentile 95% intervals for the macro difference; BLEU and chrF are recomputed as corpus scores within each language pair. Full-precision outputs, hashes and SacreBLEU signatures are in `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3.json`. These intervals condition on the single frozen training seed and Qwen run; they do not quantify retraining or annotator uncertainty.
+
+| Split and contrast | Macro BLEU delta [95% interval] | Macro chrF delta [95% interval] | Macro COMET delta [95% interval] |
+| --- | ---: | ---: | ---: |
+| Validation B − A | −0.047 [−0.368, +0.334] | −0.148 [−0.467, +0.116] | +0.0001 [−0.0013, +0.0016] |
+| Validation D − B | −0.244 [−0.953, +0.070] | +0.052 [−0.279, +0.351] | +0.0005 [−0.0037, +0.0043] |
+| Test B − A | −0.094 [−0.418, +0.211] | −0.071 [−0.267, +0.114] | −0.0005 [−0.0016, +0.0006] |
+| Test D − B | −0.259 [−0.579, +0.027] | −0.169 [−0.388, +0.026] | +0.0027 [+0.0008, +0.0046] |
+
+The test D−B COMET interval excludes zero under this document-resampling method, but its validation interval includes zero and the BLEU/chrF intervals include zero. This does not establish a stable gain across metrics, splits or training seeds. The intervals are descriptive and were not adjusted for the number of comparisons.
+
+## Alignment and blinded review
+
+`scripts/14_audit_v3_alignment.py` checked manifest hashes, uniqueness and document/current-source isolation for all 15,000 rows, then sampled 30 pairs (five distinct documents per language pair per split). The sample is in `outputs/analysis/alignment_audit_scaled_v3/`. An AI-assisted preliminary reading marked 27 pairs apparently aligned, two uncertain and one likely English–German negation discrepancy in a test reference (ALIGN-022). This is a warning about reference fidelity, **not** a measured dataset-wide error rate. Raw XML adjacency and bilingual human verification are still required. The original frozen test CSV was not edited after inspection.
+
+The 60-row blinded validation review sheet remains unfilled by an independent human. `docs/human_review_protocol.md` defines the rubric and keeps the current AI judgments separate; `outputs/analysis/abcd_validation_scaled_v3/manual_review/ai_review_diagnostic.md` summarizes the existing AI labels by context, pronoun and terminology categories. Those selected cases are exploratory.
+
 ## Interpretation and remaining checks
 
 - The v3 experiment completes the A/B/C/D comparison and the balanced-loss ablation on a larger, document-separated controlled subset. It does not show a stable advantage from simply appending the previous source sentence. The post-editor trades lower BLEU/chrF for a small COMET gain in D.
-- No confidence intervals or document-level paired significance tests are reported yet. Small differences could arise from document selection, metric noise, and the single training seed. Avoid causal or statistical significance claims.
-- A blind human evaluation with a defined rubric for pronouns, entities, terminology, omitted content and prior-sentence contamination would strengthen the context claim. Existing AI-assisted reviews are exploratory.
+- Document-level paired percentile intervals are now reported above, but retraining uncertainty, multiple comparisons and reference-quality uncertainty remain. Avoid broad causal or generalization claims.
+- A blind **human** evaluation with the defined rubric for pronouns, entities, terminology, omitted content and prior-sentence contamination would strengthen the context claim. Existing AI-assisted reviews are exploratory.
 - V2 and v3 use different held-out references and documents. Their raw BLEU scores must not be read as a matched v2→v3 improvement. The final demo uses beam and balanced v3 adapters; displaying a translation is not a test-set metric.
 
 Primary local artifacts: `data/processed/europarl_scaled_v3/summary.json`, the four `outputs/checkpoints/*_scaled_v3/run_metadata.json` files, `outputs/metrics/*_scaled_v3_*_metrics.json`, `outputs/metrics/comet_{validation,test}_scaled_v3_metrics.json`, `outputs/decoding/scaled_v3/`, `outputs/analysis/decoding_validation_scaled_v3/`, and `notebooks/02_experiment_analysis.ipynb`. Verify each file in the working project before submission; older GitHub snapshots can lack the large v3 artifacts.
