@@ -1,0 +1,34 @@
+{
+  "dataset": "europarl_scaled_v3",
+  "csv_sha256": {
+    "train": "dfaff398f114e35662c8a62e390c234d67217e0d58b5f3cb2eef92bd7fbebd04",
+    "validation": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+    "test": "da60b889f669bb1f1af8808e270d5d75a984f520429057432cc035c075ab0381"
+  },
+  "structural_checks": "PASS (manifest hashes, unique keys, no missing context, no document/source overlap)",
+  "counts": {
+    "train": {
+      "en-fr": 4000,
+      "en-de": 8000
+    },
+    "validation": {
+      "en-de": 1000,
+      "en-fr": 500
+    },
+    "test": {
+      "en-fr": 500,
+      "en-de": 1000
+    }
+  },
+  "documents": {
+    "train": 400,
+    "validation": 100,
+    "test": 100
+  },
+  "sample_size": 30,
+  "per_pair_split": 5,
+  "distinct_sampled_documents_per_pair_split": 5,
+  "seed": 20261013,
+  "sampling": "one cue sentence (where available) from each randomly drawn document",
+  "limitation": "No semantic or raw-XML adjacency claim without bilingual human/archival review."
+}
