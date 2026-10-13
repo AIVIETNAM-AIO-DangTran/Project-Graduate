@@ -1,0 +1,72 @@
+{
+  "dataset": "europarl_scaled_v3",
+  "split": "validation",
+  "input": "/workspace/scratch/bbb2260c6a6a/project-graduate/outputs/analysis/comet_validation_scaled_v3/all_examples.csv",
+  "input_sha256": "3f5df0a0b6d57b08fe7c004f7d23989c40702a1fb71cf1bc36789cb00637ba1d",
+  "documents": 100,
+  "examples": 1500,
+  "pair_counts": {
+    "en-de": 1000,
+    "en-fr": 500
+  },
+  "bootstrap_unit": "document ID, same draw for both pairs and all arms",
+  "macro": "equal mean of en-de and en-fr corpus scores (or mean COMET)",
+  "interval": "2.5th and 97.5th percentiles of paired document resamples",
+  "repetitions": 2000,
+  "seed": 20261013,
+  "sacrebleu_signatures": {
+    "bleu": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+    "chrf": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+  },
+  "caveat": "Conditional on one frozen dataset/model seed/prompt; not a human-quality or retraining uncertainty interval.",
+  "results": {
+    "bleu": {
+      "context_B_minus_A": {
+        "observed_delta": -0.04680169246138988,
+        "ci95_percentile": [
+          -0.3683454494038595,
+          0.33349914891593924
+        ]
+      },
+      "qwen_on_context_D_minus_B": {
+        "observed_delta": -0.24432439040891651,
+        "ci95_percentile": [
+          -0.9525484188933502,
+          0.06946586276284877
+        ]
+      }
+    },
+    "chrf": {
+      "context_B_minus_A": {
+        "observed_delta": -0.14833570275612828,
+        "ci95_percentile": [
+          -0.4669696113200678,
+          0.11593553342996174
+        ]
+      },
+      "qwen_on_context_D_minus_B": {
+        "observed_delta": 0.05178072135026213,
+        "ci95_percentile": [
+          -0.27869235822474564,
+          0.3504835086148945
+        ]
+      }
+    },
+    "comet": {
+      "context_B_minus_A": {
+        "observed_delta": 0.00011882579326633058,
+        "ci95_percentile": [
+          -0.0013027063585817496,
+          0.00160351616628466
+        ]
+      },
+      "qwen_on_context_D_minus_B": {
+        "observed_delta": 0.0005343232750892879,
+        "ci95_percentile": [
+          -0.0036800119172781267,
+          0.004278860557451782
+        ]
+      }
+    }
+  }
+}
