@@ -24,7 +24,7 @@ Held-out **test** macro scores below average the two language pairs equally, des
 | C, A + Qwen | 32.89 | 61.37 | 0.8704 |
 | D, B + Qwen | 33.25 | 61.52 | 0.8722 |
 
-The best BLEU/chrF is A, while D has the highest COMET. Differences are small and mixed; no document-level uncertainty interval or independent human study establishes a stable quality gain. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
+The best BLEU/chrF is A, while D has the highest COMET. Differences are small and mixed; paired document-level intervals are now reported, but no independent human study establishes a stable quality gain across splits and metrics. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
 
 ## Files and use
 
@@ -44,15 +44,20 @@ The scripts are numbered by workflow stage. Steps 08–10 form an optional valid
 | 10 | `scripts/10_analyze_decoding_effect.py` | Compare decoding errors |
 | 11 | `scripts/11_build_manual_review.py` | Build a blinded review sheet |
 | 12 | `scripts/12_summarize_abcd_review.py` | Summarize A/B/C/D judgments |
+| 13 | `scripts/13_document_bootstrap.py` | Paired document-level confidence intervals |
+| 14 | `scripts/14_audit_v3_alignment.py` | Recheck v3 CSVs and draw alignment-review samples |
 
 - `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
+- `docs/human_review_protocol.md`: blinded bilingual review rubric; the current AI review is exploratory.
 - `demo_v3.py` and `docs/demo_v3.md`: local A/B/C/D demo and installation commands.
 - `data/processed/europarl_scaled_v3/` and `outputs/`: working-project datasets, adapters, predictions and reports; check their availability in the local Windows project before reproduction. The complete frozen v3 artifacts are included in this repository.
 - `data/processed/europarl_pilot/` and `data/processed/europarl_multidoc_v2/`: small exclusion records required to reproduce the frozen v3 document selection. Model training and evaluation use `europarl_scaled_v3/`; earlier v2 results remain in Git history.
 
-The executed notebooks under `outputs/notebooks/` can be opened or rerun from the project folder or a nested notebook directory. Their validation/test copies are fixed to their named split; use `notebooks/02_experiment_analysis.ipynb` with `EXPERIMENT_SPLIT` to regenerate a different split.\n\nThe main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
+The executed notebooks under `outputs/notebooks/` can be opened or rerun from the project folder or a nested notebook directory. Their validation/test copies are fixed to their named split; use `notebooks/02_experiment_analysis.ipynb` with `EXPERIMENT_SPLIT` to regenerate a different split.
+
+The main run used Windows PowerShell and CUDA; Qwen ran through Ollama, and COMET in a separate `.venv-comet` environment. See the metadata/metric JSON files for hashes and settings, and `requirements-lock.txt` for the earlier main environment snapshot. To run the v3 notebooks:
 
 ```powershell
 $env:EXPERIMENT_SPLIT = "validation"
@@ -62,3 +67,5 @@ jupyter nbconvert --to notebook --execute notebooks\02_experiment_analysis.ipynb
 ```
 
 Raw archives, virtual environments, Hugging Face caches and intermediate training checkpoints are not committed. The v3 findings are descriptive for this controlled sample and one training seed.
+
+Paired bootstrap results for both v3 splits are in `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3.json`; the 30-row source/reference spot check and flagged examples are in `outputs/analysis/alignment_audit_scaled_v3/`. The test D–B COMET interval is positive but validation and BLEU/chrF remain mixed, so no stable across-metric improvement is claimed. The bilingual human review is still pending.
