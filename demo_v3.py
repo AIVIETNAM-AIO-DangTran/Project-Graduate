@@ -3,6 +3,7 @@
 import json
 import os
 import threading
+from importlib import import_module
 from pathlib import Path
 
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -13,12 +14,14 @@ import torch
 from peft import PeftModel
 from transformers import MBart50TokenizerFast, MBartForConditionalGeneration
 
-from scripts.postedit_lora import (
-    RESPONSE_SCHEMA,
-    SYSTEM_PROMPT,
-    api_call,
-    parse_translation,
-)
+# Numbered workflow filenames cannot appear in a regular ``from ... import``
+# statement. import_module accepts the numbered module name and keeps the demo
+# on the exact post-editing prompt/parser used in the evaluation script.
+postedit_module = import_module("scripts.06_postedit_lora")
+RESPONSE_SCHEMA = postedit_module.RESPONSE_SCHEMA
+SYSTEM_PROMPT = postedit_module.SYSTEM_PROMPT
+api_call = postedit_module.api_call
+parse_translation = postedit_module.parse_translation
 
 MODEL_NAME = "facebook/mbart-large-50-many-to-many-mmt"
 ADAPTERS = {
