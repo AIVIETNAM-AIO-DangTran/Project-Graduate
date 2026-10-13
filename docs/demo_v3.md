@@ -15,7 +15,9 @@ python -m pip install streamlit
 python -m streamlit run demo_v3.py --server.fileWatcherType none
 ```
 
-The `--server.fileWatcherType none` flag prevents Streamlit's file watcher from inspecting optional Transformers image modules such as ZoeDepth on this installation. When editing app code, restart Streamlit to see changes. This demo translates text and does not require `torchvision`.\n\nThe first launch downloads/loads the same base mBART model used for evaluation and reads the two local adapter directories:
+The `--server.fileWatcherType none` flag prevents Streamlit's file watcher from inspecting optional Transformers image modules such as ZoeDepth on this installation. When editing app code, restart Streamlit to see changes. This demo translates text and does not require `torchvision`.
+
+The demo imports the post-edit prompt and response parser from the renamed `scripts/06_postedit_lora.py`; copy that script into the Windows working project along with `demo_v3.py` if it is missing. The first launch downloads/loads the same base mBART model used for evaluation and reads the two local adapter directories:
 
 - `outputs/checkpoints/sentence_lora_balanced_scaled_v3/final_adapter/`
 - `outputs/checkpoints/context_lora_balanced_scaled_v3/final_adapter/`
