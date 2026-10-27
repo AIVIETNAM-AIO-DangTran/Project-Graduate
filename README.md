@@ -37,7 +37,7 @@ The same frozen A/B beam outputs were post-edited with GPT-6 Astra. These C/D ou
 | C, A + GPT-6 | 37.08 | 64.58 | 0.8879 |
 | D, B + GPT-6 | 37.17 | 64.64 | 0.8888 |
 
-GPT-6 improved all three metrics over A/B on both validation and test. For D−B, the test document-bootstrap 95% intervals are [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. D−C is only +0.00083 macro COMET on test, despite a positive conditional interval, while the underlying B−A context effect remains uncertain. A bilingual human review is pending. See [full results](docs/scaled_v3_results.md) and [GPT-6 workflow](docs/gpt6_postedit.md); no further paid calls are required for these completed results.
+GPT-6 improved all three metrics over A/B on both validation and test. For D−B, the test document-bootstrap 95% intervals are [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. D−C is only +0.00083 macro COMET on test, despite a positive conditional interval, while the underlying B−A context effect remains uncertain. Paired same-row comparison with the historical Qwen run gives test GPT-6 minus Qwen macro COMET +0.01752 [+0.01510, +0.02035] for C and +0.01656 [+0.01436, +0.01940] for D under document resampling. A bilingual human review is pending. See [full results](docs/scaled_v3_results.md) and [GPT-6 workflow](docs/gpt6_postedit.md); no further paid calls are required for these completed results.
 
 ## Files and use
 
