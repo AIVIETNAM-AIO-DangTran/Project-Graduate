@@ -2,7 +2,7 @@
 
 ## Purpose and materials
 
-Assess whether context (B versus A) or Qwen post-editing (C versus A, D versus B) fixes meaning, pronoun/reference and terminology errors on the **validation** split. The 60-item blinded worksheet already exists at `outputs/analysis/abcd_validation_scaled_v3/manual_review/blind_review.csv`. Give annotators only that file and this protocol. Keep `answer_key.csv`, COMET scores, model names and the existing `ai_review.csv` hidden until annotation is complete.
+Assess whether context (B versus A) or **GPT-6** post-editing (C versus A, D versus B) fixes meaning, pronoun/reference and terminology errors on the **validation** split. Generate a separate 60-item blind worksheet at `outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review/blind_review.csv` with `python scripts/11_build_manual_review.py --kind abcd --postedit-model gpt6`. Give annotators only that file and this protocol. Keep `answer_key.csv`, COMET scores, model names and the historical Qwen `ai_review.csv` hidden until annotation is complete. The earlier Qwen review remains at `outputs/analysis/abcd_validation_scaled_v3/manual_review/` and must not be reused to label GPT-6.
 
 The sheet has 10 changed translations for each language pair and comparison: four sampled from sentences matching an English context-cue regex, four from sentences without those cues, plus one highest and one lowest COMET change. **Only the first eight are random within their respective changed-output strata; the extremes are diagnostic examples.** None is a random sample of all test translations. The candidate order is masked.
 
@@ -23,6 +23,19 @@ For uncertain binary fields enter `unsure` instead of guessing. If both candidat
 
 ## Summarizing and limitations
 
-After both reviewers complete the sheets, calculate agreement on meaning wins and critical errors, reconcile disputed items, then unblind with `answer_key.csv`. `scripts/12_summarize_abcd_review.py` currently summarizes **one** completed review with a fixed 60-row layout; pass a copy through `--review` and write to a new output directory. Report results separately by language, comparison and sampling stratum. Never extrapolate a percentage from the four selected COMET extremes to the population, and do not present the current AI review as human judgments.
+After both reviewers complete the sheets, calculate agreement on meaning wins and critical errors, reconcile disputed items, then unblind with `answer_key.csv`. `scripts/12_summarize_abcd_review.py` summarizes **one** completed review with the fixed 60-row layout. Save each annotator's completed CSV separately and run it with `--postedit-model gpt6 --reviewer-type human --review <completed-file> --answer-key <answer-key> --output-dir <new-directory>`. Use separate output directories for each reviewer; do not merge individual judgments before computing agreement. Report results separately by language, comparison and sampling stratum. Never extrapolate a percentage from the four selected COMET extremes to the population, and do not present the current AI review as human judgments.
 
 This review is optional evidence about error types, not a replacement for document-level paired metric uncertainty. It is limited to selected changed outputs on validation. Reusing it for prompt tuning would make it unsuitable for a fresh validation claim.
+
+## Commands after the review
+
+```powershell
+python scripts\11_build_manual_review.py --kind abcd --postedit-model gpt6
+# Share only outputs\analysis\abcd_validation_scaled_v3_gpt6\manual_review\blind_review.csv
+# After a bilingual reviewer returns a completed copy:
+python scripts\12_summarize_abcd_review.py --postedit-model gpt6 --reviewer-type human `
+  --review path\to\completed_review.csv `
+  --output-dir outputs\analysis\abcd_validation_scaled_v3_gpt6\manual_review\reviewer_1
+```
+
+These scripts read saved validation results and never call GPT-6. Running the builder a second time into an existing directory deliberately fails rather than overwriting annotations. Use `--postedit-model qwen` only for the historical Qwen review.
