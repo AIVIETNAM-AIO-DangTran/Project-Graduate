@@ -1,8 +1,21 @@
 # GPT-6 Astra post-editing follow-up
 
-This follow-up changes only the LLM post-editor. Use the frozen balanced mBART v3 A/B predictions, the same source/context fields and post-edit prompt, and the same Europarl validation/test references. `gpt-6-astra` is an OpenAI API model; it cannot be pulled with Ollama. ChatGPT subscription access does not establish API access or cover API usage. GPT-6 quality has not been measured yet.
+This follow-up changes only the LLM post-editor. Use the frozen balanced mBART v3 A/B predictions, the same source/context fields and post-edit prompt, and the same Europarl validation/test references. `gpt-6-astra` is an OpenAI API model; it cannot be pulled with Ollama. ChatGPT subscription access does not establish API access or cover API usage. GPT-6 was subsequently evaluated on both frozen v3 splits; the results below replace the earlier pending status.
 
 `scripts/06_postedit_lora.py` now defaults to `--provider openai --model gpt-6-astra`. It sends a single source/draft per Responses API request with low reasoning effort and strict JSON output. It does not send `tgt` or the reference translation. The script saves each completed row so interrupted runs can resume, logs reported token usage, and never writes the API key. New results use `_llm_gpt6_` in filenames; the old `_llm_` Qwen results remain unchanged. An exact model change or input hash change requires a distinct output directory, rather than resuming an incompatible run.
+
+## Completed v3 follow-up (27 October 2026)
+
+| Split | Arm | Macro BLEU | Macro chrF | Macro COMET |
+| --- | --- | ---: | ---: | ---: |
+| Validation | C: sentence + GPT-6 | 36.97 | 64.24 | 0.8881 |
+| Validation | D: context + GPT-6 | 36.92 | 64.21 | 0.8896 |
+| Test | C: sentence + GPT-6 | 37.08 | 64.58 | 0.8879 |
+| Test | D: context + GPT-6 | 37.17 | 64.64 | 0.8888 |
+
+Both C−A and D−B improve BLEU, chrF, and COMET on validation and test. A 1,000-replication paired document bootstrap for the test gives D−B intervals of [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF, and [+0.0166, +0.0221] COMET. With all four arms included, the same document resamples give test C−A macro COMET +0.01796 [+0.01560, +0.02075] and D−C +0.00083 [+0.00012, +0.00153]. The D−C difference is small; the underlying B−A intervals include zero. See [full v3 results](scaled_v3_results.md) and the local JSON reports. These intervals are conditional on one frozen training seed and one LLM run; independent bilingual review is still pending.
+
+The historical Qwen results remain separate. GPT-6 test macro COMET is 0.8879/0.8888 for C/D versus Qwen's 0.8704/0.8722. The 1,500 matched test rows give paired GPT-6 minus Qwen macro COMET differences of +0.01752 [+0.01510, +0.02035] for C and +0.01656 [+0.01436, +0.01940] for D under 1,000 shared-document bootstrap resamples. Provider/runtime and decoding behavior may differ, so this is a matched pipeline comparison rather than a model-weights-only effect.
 
 ## Windows PowerShell setup
 

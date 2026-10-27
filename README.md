@@ -1,6 +1,6 @@
 # Context-aware multilingual machine translation (CIS 600)
 
-This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and LLM post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment used local Qwen2.5:7b as its historical LLM baseline; the GPT-6 Astra follow-up uses the OpenAI API and saves distinct outputs. The smaller multidoc v2 and pilot runs remain historical experiments.
+This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and LLM post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment first used local Qwen2.5:7b; GPT-6 Astra is now the primary LLM post-editor. Qwen remains a historical comparator, and their outputs are saved separately. The smaller multidoc v2 and pilot runs remain historical experiments.
 
 ## Scaled v3 study
 
@@ -10,12 +10,12 @@ The v3 splits contain 12,000 train pairs from 400 documents, 1,500 validation pa
 | --- | --- | --- |
 | A | Current English sentence | No |
 | B | Current plus preceding English source | No |
-| C | Same as A | Qwen2.5:7b |
-| D | Same as B | Qwen2.5:7b |
+| C | Same as A | GPT-6 Astra (primary); Qwen historical |
+| D | Same as B | GPT-6 Astra (primary); Qwen historical |
 
-The scores below are from the completed Qwen run; do not label them as GPT-6 results. To run the new GPT-6 C/D arms, see [GPT-6 post-editing](docs/gpt6_postedit.md).
+The first table below preserves the historical Qwen run; the GPT-6 C/D table below it is the primary post-editing result. See [GPT-6 post-editing](docs/gpt6_postedit.md) for the reproducible workflow.
 
-Held-out **test** macro scores below average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
+Held-out **test** macro scores average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
 
 | Model | SacreBLEU | chrF | COMET |
 | --- | ---: | ---: | ---: |
@@ -26,7 +26,18 @@ Held-out **test** macro scores below average the two language pairs equally, des
 | C, A + Qwen | 32.89 | 61.37 | 0.8704 |
 | D, B + Qwen | 33.25 | 61.52 | 0.8722 |
 
-The best BLEU/chrF is A, while D has the highest COMET. Differences are small and mixed; paired document-level intervals are now reported, but no independent human study establishes a stable quality gain across splits and metrics. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
+Within the historical Qwen run, A has the best BLEU/chrF and D the highest COMET. Its differences are small and mixed; paired document-level intervals are reported, but no independent human study establishes a stable quality gain across splits and metrics. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
+
+### Completed GPT-6 Astra post-editing follow-up
+
+The same frozen A/B beam outputs were post-edited with GPT-6 Astra. These C/D outputs are separate from the Qwen results above. Held-out **test** macro scores:
+
+| Model | SacreBLEU | chrF | COMET |
+| --- | ---: | ---: | ---: |
+| C, A + GPT-6 | 37.08 | 64.58 | 0.8879 |
+| D, B + GPT-6 | 37.17 | 64.64 | 0.8888 |
+
+GPT-6 improved all three metrics over A/B on both validation and test. For D−B, the test document-bootstrap 95% intervals are [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. D−C is only +0.00083 macro COMET on test, despite a positive conditional interval, while the underlying B−A context effect remains uncertain. Paired same-row comparison with the historical Qwen run gives test GPT-6 minus Qwen macro COMET +0.01752 [+0.01510, +0.02035] for C and +0.01656 [+0.01436, +0.01940] for D under document resampling. A bilingual human review is pending. See [full results](docs/scaled_v3_results.md) and [GPT-6 workflow](docs/gpt6_postedit.md); no further paid calls are required for these completed results.
 
 ## Files and use
 
