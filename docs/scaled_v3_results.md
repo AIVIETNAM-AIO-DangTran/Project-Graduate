@@ -67,9 +67,33 @@ The test D−B COMET interval excludes zero under this document-resampling metho
 
 The 60-row blinded validation review sheet remains unfilled by an independent human. `docs/human_review_protocol.md` defines the rubric and keeps the current AI judgments separate; `outputs/analysis/abcd_validation_scaled_v3/manual_review/ai_review_diagnostic.md` summarizes the existing AI labels by context, pronoun and terminology categories. Those selected cases are exploratory.
 
+## GPT-6 Astra follow-up (completed 27 October 2026)
+
+The frozen balanced A/B beam predictions were post-edited with GPT-6 Astra via the OpenAI API using the same current-source/context fields and prompt format as the historical Qwen experiment; references were never sent to the LLM. GPT-6 outputs have distinct `_llm_gpt6_` names. This section reports those outputs; the earlier tables above remain the historical Qwen results.
+
+| Split | Arm | Macro BLEU | Macro chrF | Macro COMET | Changed from mBART |
+| --- | --- | ---: | ---: | ---: | ---: |
+| Validation | C · A + GPT-6 | 36.97 | 64.24 | 0.8881 | 977/1,500 |
+| Validation | D · B + GPT-6 | 36.92 | 64.21 | 0.8896 | 1,001/1,500 |
+| Test | C · A + GPT-6 | 37.08 | 64.58 | 0.8879 | 1,025/1,500 |
+| Test | D · B + GPT-6 | 37.17 | 64.64 | 0.8888 | 1,058/1,500 |
+
+On test, C−A is +3.48 BLEU, +2.83 chrF and +0.0180 COMET; D−B is +3.66 BLEU, +2.96 chrF and +0.0192 COMET. The original paired document bootstrap (`seed=20261013`, 1,000 resamples of 100 shared documents) yields D−B test 95% percentile intervals [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. An additional four-arm calculation with the same document draws yields macro COMET intervals:
+
+| Split | Contrast | Observed macro COMET difference | 95% document-bootstrap interval |
+| --- | --- | ---: | ---: |
+| Validation | C−A | +0.01824 | [+0.01522, +0.02123] |
+| Validation | D−C | +0.00145 | [+0.00039, +0.00259] |
+| Test | C−A | +0.01796 | [+0.01560, +0.02075] |
+| Test | D−C | +0.00083 | [+0.00012, +0.00153] |
+
+D−C is consistently positive by this metric but small. B−A intervals contain zero on both splits, so the context adapter by itself has no established stable gain. Intervals condition on this dataset, one training seed and one LLM run, and are unadjusted for multiple contrasts. They do not replace bilingual human review. For example, a validation source/reference pair keeps the Latin sentence `Pactio Olisipiensis censenda est!` unchanged; GPT-6 translated it into German in C, reducing COMET against that reference. Manual review should inspect such reference-sensitive cases as well as idioms and omissions.
+
+The historical Qwen C/D test macro COMET is 0.8704/0.8722, versus GPT-6 0.8879/0.8888. This is a same-split descriptive comparison; a paired GPT-6-versus-Qwen interval requires the historical Qwen per-example score tables. Different providers and decoding implementations also limit a model-only attribution. Source files are `outputs/metrics/comet_{validation,test}_scaled_v3_gpt6_metrics.json`, `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3_gpt6.json`, and `outputs/analysis/comet_{validation,test}_scaled_v3_gpt6/all_examples.csv`. `scripts/13_document_bootstrap.py` now includes C−A and D−C when rerun, leaving older output JSONs unchanged until regeneration.
+
 ## Interpretation and remaining checks
 
-- The v3 experiment completes the A/B/C/D comparison and the balanced-loss ablation on a larger, document-separated controlled subset. It does not show a stable advantage from simply appending the previous source sentence. The post-editor trades lower BLEU/chrF for a small COMET gain in D.
+- The v3 experiment completes the A/B/C/D comparison and the balanced-loss ablation on a larger, document-separated controlled subset. It does not show a stable advantage from simply appending the previous source sentence. The historical Qwen post-editor trades lower BLEU/chrF for a small COMET gain in D; GPT-6 results are reported separately above.
 - Document-level paired percentile intervals are now reported above, but retraining uncertainty, multiple comparisons and reference-quality uncertainty remain. Avoid broad causal or generalization claims.
 - A blind **human** evaluation with the defined rubric for pronouns, entities, terminology, omitted content and prior-sentence contamination would strengthen the context claim. Existing AI-assisted reviews are exploratory.
 - V2 and v3 use different held-out references and documents. Their raw BLEU scores must not be read as a matched v2→v3 improvement. The final demo uses beam and balanced v3 adapters; displaying a translation is not a test-set metric.
