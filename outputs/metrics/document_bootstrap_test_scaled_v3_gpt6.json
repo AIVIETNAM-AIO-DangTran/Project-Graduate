@@ -1,0 +1,115 @@
+{
+  "dataset": "europarl_scaled_v3",
+  "split": "test",
+  "postedit_model": "gpt6",
+  "input": "D:\\CIS600\\context-mt\\outputs\\analysis\\comet_test_scaled_v3_gpt6\\all_examples.csv",
+  "input_sha256": "65cc17857d56005e9ed377ae2326c64d3a44463f91e24ac53e41b6c661bcd150",
+  "documents": 100,
+  "examples": 1500,
+  "pair_counts": {
+    "en-de": 1000,
+    "en-fr": 500
+  },
+  "bootstrap_unit": "document ID, same draw for both pairs and all arms",
+  "macro": "equal mean of en-de and en-fr corpus scores (or mean COMET)",
+  "interval": "2.5th and 97.5th percentiles of paired document resamples",
+  "repetitions": 1000,
+  "seed": 20261013,
+  "sacrebleu_signatures": {
+    "bleu": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+    "chrf": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+  },
+  "caveat": "Conditional on one frozen dataset/model seed/prompt; not a human-quality or retraining uncertainty interval.",
+  "results": {
+    "bleu": {
+      "context_B_minus_A": {
+        "observed_delta": -0.09388056256185351,
+        "ci95_percentile": [
+          -0.42633067394293334,
+          0.20685848260175324
+        ]
+      },
+      "llm_on_sentence_C_minus_A": {
+        "observed_delta": 3.479425034950868,
+        "ci95_percentile": [
+          2.8720571721742987,
+          4.066707868123571
+        ]
+      },
+      "llm_on_context_D_minus_B": {
+        "observed_delta": 3.65924780996588,
+        "ci95_percentile": [
+          3.063546864763138,
+          4.262393883458417
+        ]
+      },
+      "context_with_llm_D_minus_C": {
+        "observed_delta": 0.08594221245315836,
+        "ci95_percentile": [
+          -0.24197569725489448,
+          0.3952461410822532
+        ]
+      }
+    },
+    "chrf": {
+      "context_B_minus_A": {
+        "observed_delta": -0.07094473533297929,
+        "ci95_percentile": [
+          -0.27272418409740207,
+          0.11918360090030766
+        ]
+      },
+      "llm_on_sentence_C_minus_A": {
+        "observed_delta": 2.826800949554297,
+        "ci95_percentile": [
+          2.4448007839733705,
+          3.2159275943822347
+        ]
+      },
+      "llm_on_context_D_minus_B": {
+        "observed_delta": 2.9556709231223515,
+        "ci95_percentile": [
+          2.552157366145736,
+          3.373281329862967
+        ]
+      },
+      "context_with_llm_D_minus_C": {
+        "observed_delta": 0.05792523823507523,
+        "ci95_percentile": [
+          -0.1802630650154776,
+          0.29276611744914743
+        ]
+      }
+    },
+    "comet": {
+      "context_B_minus_A": {
+        "observed_delta": -0.0004515978246927288,
+        "ci95_percentile": [
+          -0.0015606315139680652,
+          0.0006286986172199262
+        ]
+      },
+      "llm_on_sentence_C_minus_A": {
+        "observed_delta": 0.017962459564209,
+        "ci95_percentile": [
+          0.015602678893506527,
+          0.02074840818867086
+        ]
+      },
+      "llm_on_context_D_minus_B": {
+        "observed_delta": 0.019246877893805525,
+        "ci95_percentile": [
+          0.01659748044386503,
+          0.02208605578541752
+        ]
+      },
+      "context_with_llm_D_minus_C": {
+        "observed_delta": 0.0008328205049037973,
+        "ci95_percentile": [
+          0.00011746450811630089,
+          0.0015314560316502912
+        ]
+      }
+    }
+  }
+}
