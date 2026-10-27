@@ -2,7 +2,7 @@
 
 The same sampled document IDs are used for both language pairs and all arms.
 This estimates uncertainty due to selecting Europarl documents; it does not
-capture variation from a new training seed, annotator, or Qwen run.
+capture variation from a new training seed, annotator, or LLM run.
 """
 
 import argparse
@@ -19,7 +19,7 @@ ROOT = Path(__file__).resolve().parents[1]
 PAIRS = ("en-de", "en-fr")
 ARMS = ("A", "B", "D")
 CONTRASTS = {"context_B_minus_A": ("B", "A"),
-             "qwen_on_context_D_minus_B": ("D", "B")}
+             "llm_on_context_D_minus_B": ("D", "B")}
 METRICS = ("bleu", "chrf", "comet")
 
 
@@ -111,6 +111,7 @@ def summarize(scores):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--split", choices=("validation", "test"), default="test")
+    parser.add_argument("--postedit-model", choices=("gpt6", "qwen"), default="gpt6")
     parser.add_argument("--reps", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=20261013)
     parser.add_argument("--input", type=Path)
@@ -118,8 +119,9 @@ def main():
     args = parser.parse_args()
     if args.reps < 200:
         parser.error("Use at least 200 bootstrap replications for percentile intervals")
-    path = args.input or ROOT / f"outputs/analysis/comet_{args.split}_scaled_v3/all_examples.csv"
-    output = args.output or ROOT / f"outputs/metrics/document_bootstrap_{args.split}_scaled_v3.json"
+    model_suffix = "_gpt6" if args.postedit_model == "gpt6" else ""
+    path = args.input or ROOT / f"outputs/analysis/comet_{args.split}_scaled_v3{model_suffix}/all_examples.csv"
+    output = args.output or ROOT / f"outputs/metrics/document_bootstrap_{args.split}_scaled_v3{model_suffix}.json"
     rows, docs, ids = read_data(path, args.split)
     bleu, chrf = BLEU(), CHRF()
     stats = precompute_document_stats(docs, ids, bleu, chrf)
@@ -147,6 +149,7 @@ def main():
                                     "ci95_percentile": [percentile(values, .025), percentile(values, .975)]}
                         for contrast, values in bootstrap[metric].items()} for metric in METRICS}
     report = {"dataset": "europarl_scaled_v3", "split": args.split,
+              "postedit_model": args.postedit_model,
               "input": str(path), "input_sha256": hashlib.sha256(path.read_bytes()).hexdigest(),
               "documents": len(ids), "examples": len(rows), "pair_counts": {p: sum(map(len, docs[p].values())) for p in PAIRS},
               "bootstrap_unit": "document ID, same draw for both pairs and all arms",
