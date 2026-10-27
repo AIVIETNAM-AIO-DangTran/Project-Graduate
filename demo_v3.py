@@ -20,8 +20,8 @@ from transformers import MBart50TokenizerFast, MBartForConditionalGeneration
 postedit_module = import_module("scripts.06_postedit_lora")
 RESPONSE_SCHEMA = postedit_module.RESPONSE_SCHEMA
 SYSTEM_PROMPT = postedit_module.SYSTEM_PROMPT
-api_call = postedit_module.api_call
-parse_translation = postedit_module.parse_translation
+openai_call = postedit_module.openai_call
+parse_openai_translation = postedit_module.parse_openai_translation
 
 MODEL_NAME = "facebook/mbart-large-50-many-to-many-mmt"
 ADAPTERS = {
@@ -94,34 +94,22 @@ def postedit(src, previous, prediction, target_language, use_context):
     }
     if use_context:
         supplied["previous_source"] = previous
-    response = api_call(
-        "http://127.0.0.1:11434",
-        "/api/chat",
-        120,
-        {
-            "model": "qwen2.5:7b",
-            "messages": [
-                {"role": "system", "content": SYSTEM_PROMPT},
-                {"role": "user", "content": json.dumps(supplied, ensure_ascii=False)},
-            ],
-            "format": RESPONSE_SCHEMA,
-            "stream": False,
-            "keep_alive": "10m",
-            "options": {"temperature": 0, "seed": 42, "num_ctx": 2048, "num_predict": 512},
-        },
-    )
-    return parse_translation(response)
+    response = openai_call([
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": json.dumps(supplied, ensure_ascii=False)},
+    ], timeout=180, reasoning_effort="low", max_output_tokens=1024)
+    return parse_openai_translation(response)
 
 
 def main():
     st.set_page_config(page_title="Europarl v3 translation demo", page_icon="🌐")
     st.title("Europarl v3 · translation demo")
-    st.caption("mBART-50 + LoRA | four-beam decoding | optional local Qwen post-editing")
+    st.caption("mBART-50 + LoRA | four-beam decoding | optional GPT-6 Astra post-editing via OpenAI API")
     with st.form("translation"):
         language = st.selectbox("Target language", list(TARGETS))
         previous = st.text_area("Previous English sentence (for context)", height=100)
         current = st.text_area("Current English sentence to translate", height=130)
-        use_llm = st.checkbox("Show Qwen post-edits (C and D)", value=False)
+        use_llm = st.checkbox("Show GPT-6 post-edits (C and D, API usage charges apply)", value=False)
         submitted = st.form_submit_button("Translate A and B")
     if not submitted:
         return
@@ -150,14 +138,14 @@ def main():
                 st.warning("Source exceeded 128 mBART tokens and was truncated on the right.")
 
     if use_llm:
-        for col, arm, title in zip(columns, ("sentence", "context"), ("C · A + Qwen", "D · B + Qwen")):
+        for col, arm, title in zip(columns, ("sentence", "context"), ("C · A + GPT-6", "D · B + GPT-6")):
             with col:
                 st.subheader(title)
                 try:
-                    with st.spinner("Post-editing with local Ollama..."):
+                    with st.spinner("Post-editing with GPT-6..."):
                         st.write(postedit(src, prev, outputs[arm][0], target_language, arm == "context"))
                 except Exception as exc:
-                    st.error(f"Qwen unavailable or returned an invalid answer: {exc}")
+                    st.error(f"GPT-6 unavailable or returned an invalid answer: {exc}")
     st.caption("Live translations are demonstrations. BLEU, chrF and COMET require held-out references and are reported separately.")
 
 

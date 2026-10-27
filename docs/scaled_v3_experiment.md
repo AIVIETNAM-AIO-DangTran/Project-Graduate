@@ -2,6 +2,8 @@
 
 **Status (October 2026):** The dataset, four balanced/unweighted models, validation/test A/B/C/D evaluation, and validation-only Top-k/Top-p ablations have been completed. The sections below preserve the original run plan and commands; see [the completed results](scaled_v3_results.md). Document-level uncertainty and independent human evaluation remain open.
 
+**GPT-6 follow-up:** The commands below record the completed Qwen experiment. For the new GPT-6 Astra post-editing run, API key setup, separate prediction filenames, and COMET scoring, use [the GPT-6 follow-up guide](gpt6_postedit.md). Keep the Qwen outputs as a historical comparator; GPT-6 results have not yet been measured.
+
 This is the next, larger controlled experiment. It does not replace the published multidoc v2 results. The proposal permits controlled Europarl subsets; evaluating every sentence of the raw corpus is a different and much more expensive study. The existing v2 test was already evaluated in full (all 150 rows).
 
 ## Design and gates
@@ -73,7 +75,7 @@ python scripts\06_postedit_lora.py `
   --dataset scaled_v3 --split validation --variant both --model qwen2.5:7b
 
 .\.venv-comet\Scripts\python.exe scripts\07_evaluate_comet.py `
-  --dataset scaled_v3 --split validation --device cuda --batch-size 4
+  --dataset scaled_v3 --split validation --postedit-model qwen --device cuda --batch-size 4
 ```
 
 Review the A/B/C/D results and prompt behavior, then freeze the settings. The existing v2 Top-k/Top-p analysis remains a validation-only side experiment; it is not necessary to rerun sampling over all v3 test sentences.
@@ -87,7 +89,7 @@ python scripts\06_postedit_lora.py `
   --dataset scaled_v3 --split test --variant both --model qwen2.5:7b
 
 .\.venv-comet\Scripts\python.exe scripts\07_evaluate_comet.py `
-  --dataset scaled_v3 --split test --device cuda --batch-size 4
+  --dataset scaled_v3 --split test --postedit-model qwen --device cuda --batch-size 4
 ```
 
 Save the v3 manifest, run metadata, predictions and metrics. Do not compare raw v2 and v3 BLEU as if their references and document samples were identical. For the report, give paired A–B, A–C, B–D, C–D comparisons on the same v3 examples, preferably bootstrapping **documents** rather than independent sentences.

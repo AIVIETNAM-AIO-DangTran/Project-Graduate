@@ -1,4 +1,4 @@
-"""Post-edit balanced mBART predictions with a local Ollama model (C/D)."""
+"""Post-edit balanced mBART predictions with GPT-6 or legacy local Ollama (C/D)."""
 
 import argparse
 import hashlib
@@ -8,6 +8,8 @@ from pathlib import Path
 import time
 import urllib.error
 import urllib.request
+from email.utils import parsedate_to_datetime
+from datetime import datetime, timezone
 
 import pandas as pd
 import sacrebleu
@@ -22,6 +24,8 @@ VARIANTS = {
     "context": {"directory": "context_lora_balanced", "arm": "D", "context": True},
 }
 PROMPT_VERSION = "minimal_postedit_v1"
+GPT_MODEL = "gpt-6-astra"
+OPENAI_ENDPOINT = "https://api.openai.com/v1/responses"
 SYSTEM_PROMPT = (
     "You are a professional English-to-German and English-to-French translation post-editor. "
     "Post-edit the supplied draft translation of the current source sentence into the specified "
@@ -45,17 +49,26 @@ def parse_arguments():
     parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--split", choices=("validation", "test"), default="validation")
     parser.add_argument("--variant", choices=("both", *VARIANTS), default="both")
-    parser.add_argument("--model", default="qwen2.5:7b")
+    parser.add_argument("--provider", choices=("openai", "ollama"), default=None,
+                        help="Default: OpenAI; legacy --model qwen2.5:7b selects Ollama.")
+    parser.add_argument("--model", default=None, help="Default: gpt-6-astra for OpenAI, qwen2.5:7b for Ollama.")
     parser.add_argument("--base-url", default="http://127.0.0.1:11434")
-    parser.add_argument("--timeout", type=float, default=600)
+    parser.add_argument("--timeout", type=float, default=180)
     parser.add_argument("--num-ctx", type=int, default=2048)
+    parser.add_argument("--reasoning-effort", choices=("low", "medium", "high", "xhigh", "max"), default="low")
+    parser.add_argument("--max-output-tokens", type=int, default=1024)
+    parser.add_argument("--max-retries", type=int, default=3)
     parser.add_argument(
         "--limit-per-pair", type=int, default=0,
         help="Positive value runs a smoke subset; 0 processes the full split. Outputs are separate.",
     )
     args = parser.parse_args()
-    if args.limit_per_pair < 0 or args.num_ctx < 512 or args.timeout <= 0:
-        parser.error("limit-per-pair must be >= 0, num-ctx >= 512, and timeout > 0.")
+    if args.provider is None:
+        args.provider = "ollama" if args.model == "qwen2.5:7b" else "openai"
+    args.model = args.model or (GPT_MODEL if args.provider == "openai" else "qwen2.5:7b")
+    if (args.limit_per_pair < 0 or args.num_ctx < 512 or args.timeout <= 0
+            or args.max_output_tokens < 128 or args.max_retries < 0):
+        parser.error("Invalid limit, context, timeout, output-token limit, or retry count.")
     return args
 
 
@@ -182,6 +195,75 @@ def parse_translation(response):
     return translation.strip()
 
 
+def retry_delay(value, attempt):
+    if value:
+        try:
+            return min(60, max(0, float(value)))
+        except ValueError:
+            try:
+                return min(60, max(0, (parsedate_to_datetime(value) - datetime.now(timezone.utc)).total_seconds()))
+            except (ValueError, TypeError, OverflowError):
+                pass
+    return min(60, 2 ** attempt)
+
+
+def openai_call(messages, model=GPT_MODEL, timeout=180, reasoning_effort="low",
+                max_output_tokens=1024, max_retries=3):
+    """One independent, non-stored Responses request; no reference translation is sent."""
+    token = os.environ.get("OPENAI_API_KEY")
+    if not token:
+        raise RuntimeError("OPENAI_API_KEY is missing. Set it in the current shell before running GPT-6.")
+    payload = {
+        "model": model, "input": messages,
+        "reasoning": {"effort": reasoning_effort},
+        "max_output_tokens": max_output_tokens,
+        "text": {"format": {"type": "json_schema", "name": "post_edit_translation",
+                            "strict": True, "schema": RESPONSE_SCHEMA}},
+        "store": False,
+    }
+    for attempt in range(max_retries + 1):
+        request = urllib.request.Request(
+            OPENAI_ENDPOINT, data=json.dumps(payload, ensure_ascii=False).encode("utf-8"),
+            headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
+            method="POST",
+        )
+        try:
+            with urllib.request.urlopen(request, timeout=timeout) as response:
+                return json.load(response)
+        except urllib.error.HTTPError as exc:
+            body = exc.read().decode("utf-8", errors="replace")[:1000]
+            request_id = exc.headers.get("x-request-id", "unavailable")
+            content_type = exc.headers.get("Content-Type", "unavailable")
+            detail = body or "(empty response body)"
+            if exc.code in (429, 500, 502, 503, 504) and attempt < max_retries:
+                time.sleep(retry_delay(exc.headers.get("Retry-After"), attempt))
+                continue
+            raise RuntimeError(
+                f"OpenAI API HTTP {exc.code} {exc.reason}; "
+                f"request_id={request_id}; content_type={content_type}; error={detail}"
+            ) from exc
+        except (urllib.error.URLError, TimeoutError) as exc:
+            # A timed-out POST may have completed on the server. Avoid an automatic duplicate request.
+            raise RuntimeError("OpenAI connection failed. Retry the same command to resume saved rows.") from exc
+
+
+def parse_openai_translation(response):
+    if response.get("status") != "completed":
+        raise RuntimeError(f"Incomplete GPT-6 response: {response.get('status')}; row was not saved.")
+    texts = []
+    for item in response.get("output", []):
+        if item.get("type") != "message":
+            continue
+        for part in item.get("content", []):
+            if part.get("type") == "refusal":
+                raise RuntimeError("GPT-6 refused the request; row was not saved.")
+            if part.get("type") == "output_text":
+                texts.append(part.get("text", ""))
+    if len(texts) != 1:
+        raise RuntimeError("Expected exactly one structured GPT-6 output; row was not saved.")
+    return parse_translation({"done": True, "message": {"content": texts[0]}})
+
+
 def load_cache(path):
     cache = {}
     if not path.exists():
@@ -245,19 +327,27 @@ def run_variant(args, variant, table, input_path, model_info, server_version):
         table = table.groupby("pair", sort=False).head(args.limit_per_pair).copy()
     table = table.reset_index(drop=True)
     suffix = f"_smoke{args.limit_per_pair}" if args.limit_per_pair else ""
-    name = f"{experiment_directory(variant, args.dataset)}_llm_{args.split}{suffix}"
+    provider_suffix = "_gpt6" if args.provider == "openai" else ""
+    name = f"{experiment_directory(variant, args.dataset)}_llm{provider_suffix}_{args.split}{suffix}"
     checkpoint_dir = PROJECT_ROOT / "outputs/postediting" / name
     manifest_path, cache_path = checkpoint_dir / "run.json", checkpoint_dir / "results.jsonl"
-    options = {"temperature": 0, "seed": 42, "num_ctx": args.num_ctx, "num_predict": 512}
+    options = ({"reasoning_effort": args.reasoning_effort, "max_output_tokens": args.max_output_tokens}
+               if args.provider == "openai" else
+               {"temperature": 0, "seed": 42, "num_ctx": args.num_ctx, "num_predict": 512})
     config = {
         "prompt_version": PROMPT_VERSION, "system_prompt": SYSTEM_PROMPT,
         "response_schema": RESPONSE_SCHEMA, "options": options, "model": args.model,
-        "model_digest": model_info["digest"], "ollama_version": server_version,
+        "model_digest": model_info["digest"] if model_info else None,
+        "ollama_version": server_version,
         "variant": variant, "arm": settings["arm"], "context_supplied": settings["context"],
         "split": args.split, "limit_per_pair": args.limit_per_pair,
         "input_sha256": sha256_bytes(input_path.read_bytes()),
-        "base_url": args.base_url.rstrip("/"),
     }
+    if args.provider == "openai":
+        config.update(provider="openai", endpoint=OPENAI_ENDPOINT, max_retries=args.max_retries)
+    else:
+        # Keep the original Qwen fingerprint for resume compatibility.
+        config["base_url"] = args.base_url.rstrip("/")
     fingerprint = sha256_bytes(json.dumps(config, sort_keys=True).encode("utf-8"))
     if manifest_path.exists():
         old = json.loads(manifest_path.read_text(encoding="utf-8"))
@@ -279,27 +369,30 @@ def run_variant(args, variant, table, input_path, model_info, server_version):
             record = cache[key]
         else:
             messages = build_messages(row, variant)
-            payload = {
-                "model": args.model, "messages": messages, "format": RESPONSE_SCHEMA,
-                "stream": False, "keep_alive": "10m", "options": options,
-            }
             started = time.perf_counter()
-            response = api_call(args.base_url, "/api/chat", args.timeout, payload)
-            record = {
-                "row_key": key, "translation": parse_translation(response),
-                "messages": messages, "raw_response": response,
-                "elapsed_seconds": time.perf_counter() - started,
-            }
-            if not cache:
-                try:
-                    snapshot = api_call(args.base_url, "/api/ps", args.timeout)
-                    record["runner_snapshot"] = snapshot
-                    for loaded in snapshot.get("models", []):
-                        if loaded.get("digest") == model_info["digest"]:
-                            vram = loaded.get("size_vram", 0) / 1024**3
-                            print(f"\nOllama loaded model VRAM: {vram:.2f} GiB (snapshot, not peak).")
-                except RuntimeError as exc:
-                    record["runner_snapshot_error"] = str(exc)
+            if args.provider == "openai":
+                response = openai_call(messages, args.model, args.timeout,
+                                       args.reasoning_effort, args.max_output_tokens, args.max_retries)
+                record = {"row_key": key, "translation": parse_openai_translation(response),
+                          "model": response.get("model"), "response_id": response.get("id"),
+                          "usage": response.get("usage"), "elapsed_seconds": time.perf_counter() - started}
+            else:
+                payload = {"model": args.model, "messages": messages, "format": RESPONSE_SCHEMA,
+                           "stream": False, "keep_alive": "10m", "options": options}
+                response = api_call(args.base_url, "/api/chat", args.timeout, payload)
+                record = {"row_key": key, "translation": parse_translation(response),
+                          "messages": messages, "raw_response": response,
+                          "elapsed_seconds": time.perf_counter() - started}
+                if not cache:
+                    try:
+                        snapshot = api_call(args.base_url, "/api/ps", args.timeout)
+                        record["runner_snapshot"] = snapshot
+                        for loaded in snapshot.get("models", []):
+                            if loaded.get("digest") == model_info["digest"]:
+                                vram = loaded.get("size_vram", 0) / 1024**3
+                                print(f"\nOllama loaded model VRAM: {vram:.2f} GiB (snapshot, not peak).")
+                    except RuntimeError as exc:
+                        record["runner_snapshot_error"] = str(exc)
             with cache_path.open("a", encoding="utf-8") as handle:
                 handle.write(json.dumps(record, ensure_ascii=False) + "\n")
                 handle.flush()
@@ -328,6 +421,9 @@ def run_variant(args, variant, table, input_path, model_info, server_version):
         "config": config, "input_path": str(input_path), "num_examples": len(result),
         "sacrebleu_version": sacrebleu.__version__, "pairs": pairs, "macro": macro,
         "total_generation_seconds": sum(record["elapsed_seconds"] for record in records),
+        "usage": ({"input_tokens": sum((r.get("usage") or {}).get("input_tokens", 0) for r in records),
+                   "output_tokens": sum((r.get("usage") or {}).get("output_tokens", 0) for r in records)}
+                  if args.provider == "openai" else None),
         "changed_predictions": int(result["prediction"].ne(result["mbart_prediction"]).sum()),
         "prediction_path": str(prediction_path), "checkpoint_path": str(cache_path),
     }
@@ -340,14 +436,18 @@ def main():
     args = parse_arguments()
     variants = list(VARIANTS) if args.variant == "both" else [args.variant]
     tables, paths = load_predictions(args.split, variants, args.dataset)
-    tags = api_call(args.base_url, "/api/tags", args.timeout)
-    model_info = next((item for item in tags.get("models", [])
-                       if args.model in (item.get("name"), item.get("model"))), None)
-    if model_info is None or not model_info.get("digest"):
-        raise RuntimeError(f"Model not found locally. Run: ollama pull {args.model}")
-    server_version = api_call(args.base_url, "/api/version", args.timeout).get("version")
-    print(f"Ollama: {server_version}; model: {args.model}; dataset: {args.dataset}; split: {args.split}")
-    print(f"Model digest: {model_info['digest']}")
+    model_info = server_version = None
+    if args.provider == "ollama":
+        tags = api_call(args.base_url, "/api/tags", args.timeout)
+        model_info = next((item for item in tags.get("models", [])
+                           if args.model in (item.get("name"), item.get("model"))), None)
+        if model_info is None or not model_info.get("digest"):
+            raise RuntimeError(f"Model not found locally. Run: ollama pull {args.model}")
+        server_version = api_call(args.base_url, "/api/version", args.timeout).get("version")
+        print(f"Ollama: {server_version}; model digest: {model_info['digest']}")
+    elif not os.environ.get("OPENAI_API_KEY"):
+        raise RuntimeError("OPENAI_API_KEY is missing. Set it in the current shell before running GPT-6.")
+    print(f"Provider: {args.provider}; model: {args.model}; dataset: {args.dataset}; split: {args.split}")
     if args.limit_per_pair:
         print(f"SMOKE SUBSET: up to {args.limit_per_pair} examples per pair per arm.")
     reports = [run_variant(args, variant, tables[variant], paths[variant], model_info, server_version)

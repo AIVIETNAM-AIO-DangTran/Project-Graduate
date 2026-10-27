@@ -36,6 +36,8 @@ def parse_arguments():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--dataset", choices=("pilot", "multidoc_v2", "scaled_v3"), default="scaled_v3")
     parser.add_argument("--split", choices=("validation", "test"), default="test")
+    parser.add_argument("--postedit-model", choices=("gpt6", "qwen"), default="gpt6",
+                        help="Which saved C/D outputs to score. Qwen remains a historical comparison.")
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)
     parser.add_argument("--limit-per-pair", type=int, default=0,
@@ -85,20 +87,23 @@ def read_table(path, split, predictions=False):
     return table.set_index(KEYS, drop=False).sort_index()
 
 
-def arms_for_dataset(dataset):
+def arms_for_dataset(dataset, postedit_model="qwen"):
+    suffix = "_llm_gpt6" if postedit_model == "gpt6" else "_llm"
     if dataset == "pilot":
-        return dict(ARMS)
+        return {"A": ARMS["A"], "B": ARMS["B"],
+                "C": f"sentence_lora_balanced{suffix}",
+                "D": f"context_lora_balanced{suffix}"}
     if dataset in ("multidoc_v2", "scaled_v3"):
         return {
             "A": f"sentence_lora_balanced_{dataset}",
             "B": f"context_lora_balanced_{dataset}",
-            "C": f"sentence_lora_balanced_{dataset}_llm",
-            "D": f"context_lora_balanced_{dataset}_llm",
+            "C": f"sentence_lora_balanced_{dataset}{suffix}",
+            "D": f"context_lora_balanced_{dataset}{suffix}",
         }
     raise ValueError(f"Unknown dataset: {dataset}")
 
 
-def load_aligned(split, limit_per_pair=0, dataset="pilot"):
+def load_aligned(split, limit_per_pair=0, dataset="pilot", postedit_model="qwen"):
     data_dir = PROJECT_ROOT / "data/processed" / (
         "europarl_pilot" if dataset == "pilot" else f"europarl_{dataset}"
     )
@@ -112,7 +117,7 @@ def load_aligned(split, limit_per_pair=0, dataset="pilot"):
     result = canonical.reset_index(drop=True).copy()
     input_info = {"dataset": {"path": str(dataset_path), "sha256": dataset_hash}}
     content = ["split", "src", "previous_src", "tgt"]
-    for arm, directory in arms_for_dataset(dataset).items():
+    for arm, directory in arms_for_dataset(dataset, postedit_model).items():
         path = PROJECT_ROOT / f"outputs/predictions/{directory}_{split}.csv"
         table = read_table(path, split, predictions=True)
         if not table.index.equals(canonical.index) or not table[content].equals(canonical[content]):
@@ -131,6 +136,12 @@ def load_aligned(split, limit_per_pair=0, dataset="pilot"):
                         input_info[baseline]["sha256"] or
                         report.get("num_examples") != len(canonical)):
                     raise ValueError(f"Arm {arm}: post-edit input/hash does not match {baseline}")
+                config = report.get("config", {})
+                if postedit_model == "gpt6":
+                    if config.get("provider") != "openai" or not config.get("model", "").startswith("gpt-6"):
+                        raise ValueError(f"Arm {arm}: expected GPT-6 OpenAI run: {metric_path}")
+                elif config.get("provider", "ollama") != "ollama":
+                    raise ValueError(f"Arm {arm}: expected legacy Qwen run: {metric_path}")
         if arm in ("C", "D"):
             baseline = "A" if arm == "C" else "B"
             if "mbart_prediction" not in table or not (
@@ -211,8 +222,8 @@ def save_ranked_examples(table, directory):
 def main():
     args = parse_arguments()
     # Validate all four prediction files before downloading/loading the metric.
-    table, inputs = load_aligned(args.split, args.limit_per_pair, args.dataset)
-    arm_directories = arms_for_dataset(args.dataset)
+    table, inputs = load_aligned(args.split, args.limit_per_pair, args.dataset, args.postedit_model)
+    arm_directories = arms_for_dataset(args.dataset, args.postedit_model)
     import torch
 
     if args.device == "cuda" and not torch.cuda.is_available():
@@ -240,13 +251,17 @@ def main():
         table[f"{arm}_comet"] = validate_scores(prediction.scores, len(table))
     arms, comparisons = summarize(table, arm_directories)
     suffix = f"_smoke{args.limit_per_pair}" if args.limit_per_pair else ""
-    label = f"comet_{args.split}" + (f"_{args.dataset}" if args.dataset != "pilot" else "") + suffix
+    label = f"comet_{args.split}" + (f"_{args.dataset}" if args.dataset != "pilot" else "")
+    if args.postedit_model == "gpt6":
+        label += "_gpt6"
+    label += suffix
     analysis_dir = PROJECT_ROOT / "outputs/analysis" / label
     score_path = analysis_dir / "all_examples.csv"
     report_path = PROJECT_ROOT / "outputs/metrics" / f"{label}_metrics.json"
     report = {
         "metric_model": MODEL_NAME, "checkpoint_path": str(checkpoint),
         "checkpoint_sha256": checkpoint_sha256, "split": args.split, "dataset": args.dataset,
+        "postedit_model": args.postedit_model,
         "smoke_test": bool(args.limit_per_pair), "num_examples_per_arm": len(table),
         "batch_size": args.batch_size, "num_workers": 0, "length_batching": False,
         "precision": "float32", "float32_matmul_precision": "highest", "seed": 42,
