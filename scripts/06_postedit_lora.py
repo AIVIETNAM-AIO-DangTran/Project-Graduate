@@ -231,11 +231,17 @@ def openai_call(messages, model=GPT_MODEL, timeout=180, reasoning_effort="low",
             with urllib.request.urlopen(request, timeout=timeout) as response:
                 return json.load(response)
         except urllib.error.HTTPError as exc:
-            detail = exc.read().decode("utf-8", errors="replace")[:400]
+            body = exc.read().decode("utf-8", errors="replace")[:1000]
+            request_id = exc.headers.get("x-request-id", "unavailable")
+            content_type = exc.headers.get("Content-Type", "unavailable")
+            detail = body or "(empty response body)"
             if exc.code in (429, 500, 502, 503, 504) and attempt < max_retries:
                 time.sleep(retry_delay(exc.headers.get("Retry-After"), attempt))
                 continue
-            raise RuntimeError(f"OpenAI API HTTP {exc.code}: {detail}") from exc
+            raise RuntimeError(
+                f"OpenAI API HTTP {exc.code} {exc.reason}; "
+                f"request_id={request_id}; content_type={content_type}; error={detail}"
+            ) from exc
         except (urllib.error.URLError, TimeoutError) as exc:
             # A timed-out POST may have completed on the server. Avoid an automatic duplicate request.
             raise RuntimeError("OpenAI connection failed. Retry the same command to resume saved rows.") from exc
