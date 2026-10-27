@@ -1,6 +1,6 @@
 # Context-aware multilingual machine translation (CIS 600)
 
-This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and LLM post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment used local Qwen2.5:7b as its historical LLM baseline; the GPT-6 Astra follow-up uses the OpenAI API and saves distinct outputs. The smaller multidoc v2 and pilot runs remain historical experiments.
+This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and LLM post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment first used local Qwen2.5:7b; GPT-6 Astra is now the primary LLM post-editor. Qwen remains a historical comparator, and their outputs are saved separately. The smaller multidoc v2 and pilot runs remain historical experiments.
 
 ## Scaled v3 study
 
@@ -10,12 +10,12 @@ The v3 splits contain 12,000 train pairs from 400 documents, 1,500 validation pa
 | --- | --- | --- |
 | A | Current English sentence | No |
 | B | Current plus preceding English source | No |
-| C | Same as A | Qwen2.5:7b |
-| D | Same as B | Qwen2.5:7b |
+| C | Same as A | GPT-6 Astra (primary); Qwen historical |
+| D | Same as B | GPT-6 Astra (primary); Qwen historical |
 
-The scores below are from the completed Qwen run; do not label them as GPT-6 results. For the completed GPT-6 C/D follow-up, see [GPT-6 post-editing](docs/gpt6_postedit.md).
+The first table below preserves the historical Qwen run; the GPT-6 C/D table below it is the primary post-editing result. See [GPT-6 post-editing](docs/gpt6_postedit.md) for the reproducible workflow.
 
-Held-out **test** macro scores below average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
+Held-out **test** macro scores average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
 
 | Model | SacreBLEU | chrF | COMET |
 | --- | ---: | ---: | ---: |
