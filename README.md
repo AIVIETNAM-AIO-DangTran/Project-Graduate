@@ -13,7 +13,7 @@ The v3 splits contain 12,000 train pairs from 400 documents, 1,500 validation pa
 | C | Same as A | Qwen2.5:7b |
 | D | Same as B | Qwen2.5:7b |
 
-The scores below are from the completed Qwen run; do not label them as GPT-6 results. To run the new GPT-6 C/D arms, see [GPT-6 post-editing](docs/gpt6_postedit.md).
+The scores below are from the completed Qwen run; do not label them as GPT-6 results. For the completed GPT-6 C/D follow-up, see [GPT-6 post-editing](docs/gpt6_postedit.md).
 
 Held-out **test** macro scores below average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
 
@@ -26,7 +26,18 @@ Held-out **test** macro scores below average the two language pairs equally, des
 | C, A + Qwen | 32.89 | 61.37 | 0.8704 |
 | D, B + Qwen | 33.25 | 61.52 | 0.8722 |
 
-The best BLEU/chrF is A, while D has the highest COMET. Differences are small and mixed; paired document-level intervals are now reported, but no independent human study establishes a stable quality gain across splits and metrics. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
+Within the historical Qwen run, A has the best BLEU/chrF and D the highest COMET. Its differences are small and mixed; paired document-level intervals are reported, but no independent human study establishes a stable quality gain across splits and metrics. The v3 Top-k/Top-p experiment was assessed on validation only: sampled candidates plus Qwen reranking reduced BLEU relative to beam, so beam remained the test decoder.
+
+### Completed GPT-6 Astra post-editing follow-up
+
+The same frozen A/B beam outputs were post-edited with GPT-6 Astra. These C/D outputs are separate from the Qwen results above. Held-out **test** macro scores:
+
+| Model | SacreBLEU | chrF | COMET |
+| --- | ---: | ---: | ---: |
+| C, A + GPT-6 | 37.08 | 64.58 | 0.8879 |
+| D, B + GPT-6 | 37.17 | 64.64 | 0.8888 |
+
+GPT-6 improved all three metrics over A/B on both validation and test. For D−B, the test document-bootstrap 95% intervals are [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. D−C is only +0.00083 macro COMET on test, despite a positive conditional interval, while the underlying B−A context effect remains uncertain. A bilingual human review is pending. See [full results](docs/scaled_v3_results.md) and [GPT-6 workflow](docs/gpt6_postedit.md); no further paid calls are required for these completed results.
 
 ## Files and use
 
