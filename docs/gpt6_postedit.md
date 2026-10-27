@@ -15,7 +15,7 @@ This follow-up changes only the LLM post-editor. Use the frozen balanced mBART v
 
 Both C−A and D−B improve BLEU, chrF, and COMET on validation and test. A 1,000-replication paired document bootstrap for the test gives D−B intervals of [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF, and [+0.0166, +0.0221] COMET. With all four arms included, the same document resamples give test C−A macro COMET +0.01796 [+0.01560, +0.02075] and D−C +0.00083 [+0.00012, +0.00153]. The D−C difference is small; the underlying B−A intervals include zero. See [full v3 results](scaled_v3_results.md) and the local JSON reports. These intervals are conditional on one frozen training seed and one LLM run; independent bilingual review is still pending.
 
-The historical Qwen results remain separate. GPT-6 test macro COMET is 0.8879/0.8888 for C/D versus Qwen's 0.8704/0.8722, but this is a descriptive comparison, not a paired GPT-6-versus-Qwen interval.
+The historical Qwen results remain separate. GPT-6 test macro COMET is 0.8879/0.8888 for C/D versus Qwen's 0.8704/0.8722. The 1,500 matched test rows give paired GPT-6 minus Qwen macro COMET differences of +0.01752 [+0.01510, +0.02035] for C and +0.01656 [+0.01436, +0.01940] for D under 1,000 shared-document bootstrap resamples. Provider/runtime and decoding behavior may differ, so this is a matched pipeline comparison rather than a model-weights-only effect.
 
 ## Windows PowerShell setup
 
