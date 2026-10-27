@@ -1,6 +1,6 @@
 # Context-aware multilingual machine translation (CIS 600)
 
-This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and optional local Qwen2.5:7b post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment is the main study; the smaller multidoc v2 and pilot runs remain historical experiments.
+This project studies English → German/French translation on document-separated Europarl subsets. It compares sentence and previous-source context inputs, balanced and unweighted LoRA training, and LLM post-editing. mBART-50 is the base translator. The completed larger **scaled v3** experiment used local Qwen2.5:7b as its historical LLM baseline; the GPT-6 Astra follow-up uses the OpenAI API and saves distinct outputs. The smaller multidoc v2 and pilot runs remain historical experiments.
 
 ## Scaled v3 study
 
@@ -12,6 +12,8 @@ The v3 splits contain 12,000 train pairs from 400 documents, 1,500 validation pa
 | B | Current plus preceding English source | No |
 | C | Same as A | Qwen2.5:7b |
 | D | Same as B | Qwen2.5:7b |
+
+The scores below are from the completed Qwen run; do not label them as GPT-6 results. To run the new GPT-6 C/D arms, see [GPT-6 post-editing](docs/gpt6_postedit.md).
 
 Held-out **test** macro scores below average the two language pairs equally, despite their unequal row counts. See [full v3 results](docs/scaled_v3_results.md) for pair scores, validation results, ablations, and limitations.
 
@@ -37,8 +39,8 @@ The scripts are numbered by workflow stage. Steps 08–10 form an optional valid
 | 03 | `scripts/03_eda_europarl.py` | Explore data and token lengths |
 | 04 | `scripts/04_train_lora.py` | Train balanced or unweighted LoRA |
 | 05 | `scripts/05_evaluate_lora.py` | Generate BLEU/chrF predictions |
-| 06 | `scripts/06_postedit_lora.py` | Post-edit with local Ollama |
-| 07 | `scripts/07_evaluate_comet.py` | Score A/B/C/D with COMET |
+| 06 | `scripts/06_postedit_lora.py` | Post-edit with GPT-6 API or legacy local Ollama |
+| 07 | `scripts/07_evaluate_comet.py` | Score A/B/C/D with COMET, keeping GPT-6 separate |
 | 08 | `scripts/08_sample_decoding.py` | Generate and rerank Top-k/Top-p candidates |
 | 09 | `scripts/09_evaluate_decoding_comet.py` | Score sampled decoding with COMET |
 | 10 | `scripts/10_analyze_decoding_effect.py` | Compare decoding errors |
