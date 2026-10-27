@@ -16,8 +16,14 @@ ROOT = Path(__file__).resolve().parents[1]
 KEYS = ("pair", "doc_id", "src_sent_id", "tgt_sent_id")
 PAIRS = ("en-de", "en-fr")
 SEED = 20261012
-ABCD_SCORES = ROOT / "outputs/analysis/comet_validation_scaled_v3/all_examples.csv"
-ABCD_OUTPUT = ROOT / "outputs/analysis/abcd_validation_scaled_v3/manual_review"
+ABCD_SCORES = {
+    "gpt6": ROOT / "outputs/analysis/comet_validation_scaled_v3_gpt6/all_examples.csv",
+    "qwen": ROOT / "outputs/analysis/comet_validation_scaled_v3/all_examples.csv",
+}
+ABCD_OUTPUT = {
+    "gpt6": ROOT / "outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review",
+    "qwen": ROOT / "outputs/analysis/abcd_validation_scaled_v3/manual_review",
+}
 DECODING_SCORES = ROOT / "outputs/decoding/scaled_v3/validation_comet_comparison/all_examples.csv"
 DECODING_OUTPUT = ROOT / "outputs/analysis/decoding_validation_scaled_v3/manual_review"
 COMPARISONS = {
@@ -84,7 +90,7 @@ def build_abcd(args):
 
     blind, answer = [], []
     for n, (name, before, after, pair, row, selection) in enumerate(chosen, start=1):
-        review_id = f"ABCD-{n:03d}"
+        review_id = f"{args.postedit_model.upper()}-{n:03d}"
         before_at = 1 + rng.randrange(2)
         candidates = {before_at: row[f"{before}_prediction"],
                       3 - before_at: row[f"{after}_prediction"]}
@@ -116,7 +122,8 @@ def build_abcd(args):
         raise FileExistsError("Review already exists; use a new --output-dir to preserve annotations")
     save_csv(blind_path, blind)
     save_csv(key_path, answer)
-    metadata = {"dataset": "scaled_v3", "split": "validation", "seed": SEED,
+    metadata = {"dataset": "scaled_v3", "split": "validation",
+                "postedit_model": args.postedit_model, "seed": SEED,
                 "source_path": str(args.scores.resolve()),
                 "source_sha256": hashlib.sha256(args.scores.read_bytes()).hexdigest(),
                 "num_items": len(blind), "per_pair_comparison": 10,
@@ -213,12 +220,14 @@ def build_decoding(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kind", choices=("abcd", "decoding"), required=True)
+    parser.add_argument("--postedit-model", choices=("gpt6", "qwen"), default="gpt6",
+                        help="A/B/C/D model; decoding review remains the historical Qwen reranker")
     parser.add_argument("--scores", type=Path, help="Score table; defaults to this kind's scaled_v3 validation table")
     parser.add_argument("--output-dir", type=Path, help="New directory for blind review and answer key")
     args = parser.parse_args()
     if args.kind == "abcd":
-        args.scores = args.scores or ABCD_SCORES
-        args.output_dir = args.output_dir or ABCD_OUTPUT
+        args.scores = args.scores or ABCD_SCORES[args.postedit_model]
+        args.output_dir = args.output_dir or ABCD_OUTPUT[args.postedit_model]
         build_abcd(args)
     else:
         args.scores = args.scores or DECODING_SCORES
