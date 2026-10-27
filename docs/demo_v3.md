@@ -1,6 +1,6 @@
 # Local v3 translation demo
 
-`demo_v3.py` is a Streamlit interface for English → German/French. It shows A (sentence) and B (current sentence + previous source) with the two **balanced scaled-v3 adapters**. Checking the Qwen option also shows C (A post-edited) and D (B post-edited). The default is the four-beam decoder chosen on validation. The app sends **no reference translations** to Qwen.
+`demo_v3.py` is a Streamlit interface for English → German/French. It shows A (sentence) and B (current sentence + previous source) with the two **balanced scaled-v3 adapters**. Checking the GPT-6 option also shows C (A post-edited) and D (B post-edited). The default is the four-beam decoder chosen on validation. The app sends **no reference translations** to GPT-6.
 
 Run it in the original Windows project, where the trained v3 adapters and `.venv` already exist. First pull the latest repository files into the GitHub clone and copy the app into the working project:
 

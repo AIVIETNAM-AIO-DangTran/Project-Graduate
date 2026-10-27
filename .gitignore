@@ -8,3 +8,9 @@ __pycache__/
 data/raw/
 outputs/checkpoints/**/checkpoint-*/
 outputs/checkpoints/**/*smoke*/
+
+# Historical Qwen v3 request caches; prediction CSVs and run metadata are retained.
+/outputs/postediting/context_lora_balanced_scaled_v3_llm_test/results.jsonl
+/outputs/postediting/context_lora_balanced_scaled_v3_llm_validation/results.jsonl
+/outputs/postediting/sentence_lora_balanced_scaled_v3_llm_test/results.jsonl
+/outputs/postediting/sentence_lora_balanced_scaled_v3_llm_validation/results.jsonl
