@@ -60,7 +60,7 @@ The scripts are numbered by workflow stage. Steps 08–10 form an optional valid
 | 13 | `scripts/13_document_bootstrap.py` | Paired document-level confidence intervals |
 | 14 | `scripts/14_audit_v3_alignment.py` | Recheck v3 CSVs and draw alignment-review samples |
 
-- `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
+- `notebooks/01_europarl_eda.ipynb`: v3 EDA. `notebooks/02_experiment_analysis.ipynb`: v3 validation/test results, selected by `EXPERIMENT_SPLIT`, with GPT-6 post-editing by default. Set `POSTEDIT_MODEL=qwen` to inspect the historical Qwen run. Executed copies are in `outputs/notebooks/` (`01_scaled_v3_eda.ipynb`, `02_scaled_v3_validation.ipynb`, `02_scaled_v3_test.ipynb`). Earlier v2 results remain in Git history.
 - `docs/scaled_v3_experiment.md`: design and data-building commands.
 - `docs/scaled_v3_results.md`: full v3 results and interpretation.
 - `docs/human_review_protocol.md`: blinded bilingual review rubric; the current AI review is exploratory.
