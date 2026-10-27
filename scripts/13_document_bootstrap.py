@@ -1,4 +1,4 @@
-"""Paired document-cluster bootstrap for the frozen v3 A/B/D predictions.
+"""Paired document-cluster bootstrap for the frozen v3 A/B/C/D predictions.
 
 The same sampled document IDs are used for both language pairs and all arms.
 This estimates uncertainty due to selecting Europarl documents; it does not
@@ -17,9 +17,11 @@ from sacrebleu.metrics import BLEU, CHRF
 
 ROOT = Path(__file__).resolve().parents[1]
 PAIRS = ("en-de", "en-fr")
-ARMS = ("A", "B", "D")
+ARMS = ("A", "B", "C", "D")
 CONTRASTS = {"context_B_minus_A": ("B", "A"),
-             "llm_on_context_D_minus_B": ("D", "B")}
+             "llm_on_sentence_C_minus_A": ("C", "A"),
+             "llm_on_context_D_minus_B": ("D", "B"),
+             "context_with_llm_D_minus_C": ("D", "C")}
 METRICS = ("bleu", "chrf", "comet")
 
 
