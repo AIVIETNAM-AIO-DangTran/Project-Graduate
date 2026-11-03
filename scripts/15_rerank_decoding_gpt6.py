@@ -34,8 +34,11 @@ def arguments():
     parser.add_argument("--timeout", type=int, default=180)
     parser.add_argument("--reasoning-effort", choices=("low", "medium", "high"), default="low")
     parser.add_argument("--max-output-tokens", type=int, default=1024)
+    parser.add_argument("--max-retries", type=int, default=5,
+                        help="Retries for HTTP 429/5xx with bounded backoff; network timeouts are not retried.")
     args = parser.parse_args()
-    if args.limit_per_pair < 0 or args.max_api_calls < 0 or args.timeout < 1 or args.max_output_tokens < 128:
+    if (args.limit_per_pair < 0 or args.max_api_calls < 0 or args.timeout < 1
+            or args.max_output_tokens < 128 or args.max_retries < 0):
         parser.error("Invalid limit, call cap, timeout or output-token limit.")
     return args
 
@@ -175,17 +178,29 @@ def call_openai(messages, model, max_index, args):
         headers={"Authorization": f"Bearer {token}", "Content-Type": "application/json"},
         method="POST",
     )
-    try:
-        with urllib.request.urlopen(request, timeout=args.timeout) as response:
-            result = json.load(response)
-    except urllib.error.HTTPError as exc:
-        detail = exc.read().decode("utf-8", errors="replace")[:1000]
-        raise RuntimeError(
-            f"OpenAI HTTP {exc.code}; request_id={exc.headers.get('x-request-id', 'unavailable')}; "
-            f"body={detail or '(empty)'}"
-        ) from exc
-    except (urllib.error.URLError, TimeoutError) as exc:
-        raise RuntimeError("OpenAI connection failed. Rerun to resume saved rows; a timed-out request may have been billed.") from exc
+    for attempt in range(args.max_retries + 1):
+        try:
+            with urllib.request.urlopen(request, timeout=args.timeout) as response:
+                result = json.load(response)
+            break
+        except urllib.error.HTTPError as exc:
+            detail = exc.read().decode("utf-8", errors="replace")[:1000]
+            if exc.code in (429, 500, 502, 503, 504) and attempt < args.max_retries:
+                try:
+                    delay = min(60, max(0, float(exc.headers.get("Retry-After", ""))))
+                except ValueError:
+                    delay = min(60, 2 ** (attempt + 1))
+                print(f"OpenAI HTTP {exc.code}; retry {attempt + 1}/{args.max_retries} in {delay:g}s")
+                time.sleep(delay)
+                continue
+            raise RuntimeError(
+                f"OpenAI HTTP {exc.code}; request_id={exc.headers.get('x-request-id', 'unavailable')}; "
+                f"body={detail or '(empty)'}"
+            ) from exc
+        except (urllib.error.URLError, TimeoutError) as exc:
+            raise RuntimeError(
+                "OpenAI connection failed. Rerun to resume saved rows; a timed-out request may have been billed."
+            ) from exc
     if result.get("status") != "completed":
         raise RuntimeError(f"GPT-6 incomplete: {result.get('status')}; row not saved.")
     parts = [
