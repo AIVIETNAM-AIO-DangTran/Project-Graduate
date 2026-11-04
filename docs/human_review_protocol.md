@@ -2,7 +2,7 @@
 
 ## Purpose and materials
 
-Assess whether context (B versus A) or **GPT-6** post-editing (C versus A, D versus B) fixes meaning, pronoun/reference and terminology errors on the **validation** split. Generate a separate 60-item blind worksheet at `outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review/blind_review.csv` with `python scripts/11_build_manual_review.py --kind abcd --postedit-model gpt6`. Give annotators only that file and this protocol. Keep `answer_key.csv`, COMET scores, model names and the historical Qwen `ai_review.csv` hidden until annotation is complete. The earlier Qwen review remains at `outputs/analysis/abcd_validation_scaled_v3/manual_review/` and must not be reused to label GPT-6.
+Assess whether context (B versus A) or **GPT-6** post-editing (C versus A, D versus B) fixes meaning, pronoun/reference and terminology errors on the **validation** split. Generate a separate 60-item blind worksheet at `outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review/blind_review.csv` with `python scripts/11_build_manual_review.py --kind abcd --postedit-model gpt6`. Give annotators only that file and this protocol. Keep `answer_key.csv`, COMET scores and model identities hidden until annotation is complete.
 
 The sheet has 10 changed translations for each language pair and comparison: four sampled from sentences matching an English context-cue regex, four from sentences without those cues, plus one highest and one lowest COMET change. **Only the first eight are random within their respective changed-output strata; the extremes are diagnostic examples.** None is a random sample of all test translations. The candidate order is masked.
 
@@ -38,4 +38,4 @@ python scripts\12_summarize_abcd_review.py --postedit-model gpt6 --reviewer-type
   --output-dir outputs\analysis\abcd_validation_scaled_v3_gpt6\manual_review\reviewer_1
 ```
 
-These scripts read saved validation results and never call GPT-6. Running the builder a second time into an existing directory deliberately fails rather than overwriting annotations. Use `--postedit-model qwen` only for the historical Qwen review.
+These scripts read saved validation results and never call GPT-6. Running the builder a second time into an existing directory deliberately fails rather than overwriting annotations. For the decoding comparison, run `python scripts/11_build_manual_review.py --kind decoding`. Its default score table and output directory use GPT-6 reranking.
