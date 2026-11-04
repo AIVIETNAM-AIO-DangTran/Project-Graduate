@@ -1,7 +1,6 @@
-"""Verify frozen v3 CSV structure and draw a documented alignment-review sample.
+"""Verify frozen v3 CSV structure and draw an alignment inspection sample.
 
-Semantic equivalence and previous-sentence provenance require a reviewer and,
-for the latter, the original Europarl XML. The output CSV keeps those fields blank.
+Structural checks do not establish semantic equivalence or raw-XML adjacency.
 """
 
 import argparse
@@ -75,12 +74,9 @@ def main():
                 selected.append({"audit_id": f"ALIGN-{len(selected)+1:03d}", "split": split,
                                  "pair": pair, "doc_id": doc_id,
                                  "src_sent_id": row["src_sent_id"], "tgt_sent_id": row["tgt_sent_id"],
-                                 "previous_src": row["previous_src"], "src": row["src"], "tgt": row["tgt"],
-                                 "semantic_equivalent_1_0_unsure": "",
-                                 "previous_source_adjacent_1_0_unsure": "",
-                                 "notes": ""})
+                                 "previous_src": row["previous_src"], "src": row["src"], "tgt": row["tgt"]})
     args.output_dir.mkdir(parents=True, exist_ok=True)
-    sample_path = args.output_dir / "alignment_review_blank.csv"
+    sample_path = args.output_dir / "alignment_sample.csv"
     with sample_path.open("w", newline="", encoding="utf-8-sig") as stream:
         writer = csv.DictWriter(stream, fieldnames=list(selected[0]))
         writer.writeheader()
@@ -92,10 +88,10 @@ def main():
                 "distinct_sampled_documents_per_pair_split": args.per_pair_split,
                 "seed": args.seed,
                 "sampling": "one cue sentence (where available) from each randomly drawn document",
-                "limitation": "No semantic or raw-XML adjacency claim without bilingual human/archival review."}
+                "limitation": "Structural checks do not establish semantic equivalence or raw-XML adjacency."}
     (args.output_dir / "audit_metadata.json").write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     print(f"PASS: {sum(map(len, all_rows.values()))} rows; {metadata['documents']}")
-    print(f"Review sheet: {sample_path} ({len(selected)} rows)")
+    print(f"Audit sample: {sample_path} ({len(selected)} rows)")
 
 
 if __name__ == "__main__":
