@@ -1,0 +1,185 @@
+{
+  "metric_model": "Unbabel/wmt22-comet-da",
+  "checkpoint_sha256": "e213091cde220f97b89f8bdfa750c458cfea741ad62affb455b59900210ff2af",
+  "split": "validation",
+  "dataset": "scaled_v3",
+  "provenance": {
+    "dataset": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+    "beam": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+    "existing_comet_report": "07a4e3e3bfda4c4a8508f8ff6c9a0a502f9d9586875570760cfb02c3146d5659",
+    "existing_comet_scores": "3f5df0a0b6d57b08fe7c004f7d23989c40702a1fb71cf1bc36789cb00637ba1d",
+    "top_k": {
+      "directory": "D:\\CIS600\\context-mt\\outputs\\decoding\\scaled_v3\\validation_top_k_k50_n3_t0p8_seed42_gpt6",
+      "predictions_sha256": "eba7d2c1d2ab7142ffe1001a33525d379823ccac682a9d6927ecd3420aa97a57",
+      "metrics_sha256": "16becf9e7b3949ca97fa20702de69cb0b325e2fc76eaf2dbad709eda6395363f",
+      "generation": {
+        "dataset": "europarl_scaled_v3",
+        "split": "validation",
+        "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+        "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+        "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+        "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+        "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+        "input_format": "src </s> previous_src",
+        "source_truncation_side": "right",
+        "max_length": 128,
+        "method": "top_k",
+        "samples": 3,
+        "top_k": 50,
+        "top_p": 1.0,
+        "temperature": 0.8,
+        "seed": 42,
+        "limit_per_pair": 0
+      },
+      "reranker": {
+        "generation": {
+          "dataset": "europarl_scaled_v3",
+          "split": "validation",
+          "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+          "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+          "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+          "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+          "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+          "input_format": "src </s> previous_src",
+          "source_truncation_side": "right",
+          "max_length": 128,
+          "method": "top_k",
+          "samples": 3,
+          "top_k": 50,
+          "top_p": 1.0,
+          "temperature": 0.8,
+          "seed": 42,
+          "limit_per_pair": 0
+        },
+        "candidate_sha256": "7e8c1eadfe70279ba4e9be22b543d85318fde4252a2964ac1a3337973ecc3dea",
+        "source_candidate_sha256": "7e8c1eadfe70279ba4e9be22b543d85318fde4252a2964ac1a3337973ecc3dea",
+        "model": "gpt-6-astra",
+        "provider": "openai",
+        "prompt_version": 1,
+        "reasoning_effort": "low",
+        "max_output_tokens": 1024,
+        "limit_per_pair": 0
+      }
+    },
+    "top_p": {
+      "directory": "D:\\CIS600\\context-mt\\outputs\\decoding\\scaled_v3\\validation_top_p_p0p9_n3_t0p8_seed42_gpt6",
+      "predictions_sha256": "f3750dc82ca6aa93f2ad9efc220c6fac9864cb27588e64f559c359d9e87f1a57",
+      "metrics_sha256": "83afc6b65ee4ad32640752d48fa1950f956e7d0697598b146f11059298d83673",
+      "generation": {
+        "dataset": "europarl_scaled_v3",
+        "split": "validation",
+        "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+        "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+        "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+        "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+        "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+        "input_format": "src </s> previous_src",
+        "source_truncation_side": "right",
+        "max_length": 128,
+        "method": "top_p",
+        "samples": 3,
+        "top_k": 0,
+        "top_p": 0.9,
+        "temperature": 0.8,
+        "seed": 42,
+        "limit_per_pair": 0
+      },
+      "reranker": {
+        "generation": {
+          "dataset": "europarl_scaled_v3",
+          "split": "validation",
+          "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+          "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+          "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+          "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+          "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+          "input_format": "src </s> previous_src",
+          "source_truncation_side": "right",
+          "max_length": 128,
+          "method": "top_p",
+          "samples": 3,
+          "top_k": 0,
+          "top_p": 0.9,
+          "temperature": 0.8,
+          "seed": 42,
+          "limit_per_pair": 0
+        },
+        "candidate_sha256": "b4726041fd5918fbcf342ad0a0fb2028e1030a099500476b926a96396b7b1aca",
+        "source_candidate_sha256": "b4726041fd5918fbcf342ad0a0fb2028e1030a099500476b926a96396b7b1aca",
+        "model": "gpt-6-astra",
+        "provider": "openai",
+        "prompt_version": 1,
+        "reasoning_effort": "low",
+        "max_output_tokens": 1024,
+        "limit_per_pair": 0
+      }
+    }
+  },
+  "device": "cuda",
+  "batch_size": 4,
+  "versions": {
+    "unbabel-comet": "2.2.7",
+    "torch": "2.8.0+cu128",
+    "transformers": "4.57.6",
+    "pytorch-lightning": "2.6.6",
+    "pandas": "3.0.6"
+  },
+  "macro_definition": "unweighted average of en-de and en-fr means",
+  "summary": {
+    "beam": {
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8697700807452202,
+          "mean_delta_vs_beam": 0.0,
+          "changed_vs_beam": 0
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8701960905790329,
+          "mean_delta_vs_beam": 0.0,
+          "changed_vs_beam": 0
+        }
+      },
+      "macro_comet": 0.8699830856621266,
+      "macro_delta_vs_beam": 0.0
+    },
+    "top_k": {
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8720575273036957,
+          "mean_delta_vs_beam": 0.0022874465584754953,
+          "changed_vs_beam": 232
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8730620731711387,
+          "mean_delta_vs_beam": 0.0028659825921058656,
+          "changed_vs_beam": 130
+        }
+      },
+      "macro_comet": 0.8725598002374172,
+      "macro_delta_vs_beam": 0.0025767145752906805
+    },
+    "top_p": {
+      "pairs": {
+        "en-de": {
+          "num_examples": 1000,
+          "comet_mean": 0.8721213913857937,
+          "mean_delta_vs_beam": 0.0023513106405735023,
+          "changed_vs_beam": 321
+        },
+        "en-fr": {
+          "num_examples": 500,
+          "comet_mean": 0.8732177832126617,
+          "mean_delta_vs_beam": 0.003021692633628845,
+          "changed_vs_beam": 187
+        }
+      },
+      "macro_comet": 0.8726695872992277,
+      "macro_delta_vs_beam": 0.002686501637101174
+    }
+  },
+  "sentence_scores": "D:\\CIS600\\context-mt\\outputs\\decoding\\scaled_v3\\validation_comet_comparison_gpt6\\all_examples.csv"
+}

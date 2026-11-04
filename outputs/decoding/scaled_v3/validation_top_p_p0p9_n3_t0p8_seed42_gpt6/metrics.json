@@ -1,0 +1,82 @@
+{
+  "config": {
+    "dataset": "europarl_scaled_v3",
+    "split": "validation",
+    "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+    "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+    "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+    "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+    "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+    "input_format": "src </s> previous_src",
+    "source_truncation_side": "right",
+    "max_length": 128,
+    "method": "top_p",
+    "samples": 3,
+    "top_k": 0,
+    "top_p": 0.9,
+    "temperature": 0.8,
+    "seed": 42,
+    "limit_per_pair": 0
+  },
+  "reranker": {
+    "generation": {
+      "dataset": "europarl_scaled_v3",
+      "split": "validation",
+      "dataset_sha256": "680700e2dd35b5d25c822af5df146a163eff18a637000960802757fb8bbabff9",
+      "baseline_sha256": "267644434d997657577db3fd3834b32240fab78f7d698071c290e9321e6b0bcb",
+      "adapter": "D:\\CIS600\\context-mt\\outputs\\checkpoints\\context_lora_balanced_scaled_v3\\final_adapter",
+      "adapter_sha256": "9ad8c3d2d2b7a769c374494877c8a8dd8a89a8437a93b0720fcd68450bde39cd",
+      "base_model": "facebook/mbart-large-50-many-to-many-mmt",
+      "input_format": "src </s> previous_src",
+      "source_truncation_side": "right",
+      "max_length": 128,
+      "method": "top_p",
+      "samples": 3,
+      "top_k": 0,
+      "top_p": 0.9,
+      "temperature": 0.8,
+      "seed": 42,
+      "limit_per_pair": 0
+    },
+    "candidate_sha256": "b4726041fd5918fbcf342ad0a0fb2028e1030a099500476b926a96396b7b1aca",
+    "source_candidate_sha256": "b4726041fd5918fbcf342ad0a0fb2028e1030a099500476b926a96396b7b1aca",
+    "model": "gpt-6-astra",
+    "provider": "openai",
+    "prompt_version": 1,
+    "reasoning_effort": "low",
+    "max_output_tokens": 1024,
+    "limit_per_pair": 0
+  },
+  "sacrebleu_version": "2.6.0",
+  "pairs": {
+    "en-de": {
+      "num_examples": 1000,
+      "beam_bleu": 29.113562665162195,
+      "reranked_bleu": 28.680248650653848,
+      "beam_chrf": 58.83284477110497,
+      "reranked_chrf": 58.76813243281765,
+      "changed": 321,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    },
+    "en-fr": {
+      "num_examples": 500,
+      "beam_bleu": 38.7814858100877,
+      "reranked_bleu": 38.60370544124888,
+      "beam_chrf": 64.38608360900447,
+      "reranked_chrf": 64.30924233529757,
+      "changed": 187,
+      "bleu_signature": "nrefs:1|case:mixed|eff:no|tok:13a|smooth:exp|version:2.6.0",
+      "chrf_signature": "nrefs:1|case:mixed|eff:yes|nc:6|nw:0|space:no|version:2.6.0"
+    }
+  },
+  "macro": {
+    "beam_bleu": 33.94752423762495,
+    "reranked_bleu": 33.641977045951364,
+    "beam_chrf": 61.60946419005472,
+    "reranked_chrf": 61.53868738405761
+  },
+  "total_changed": 508,
+  "mean_unique_candidates": 3.7626666666666666,
+  "smoke_test": false
+}
