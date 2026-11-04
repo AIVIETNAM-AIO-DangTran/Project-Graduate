@@ -4,7 +4,7 @@ This is a **validation-only** extension of the frozen scaled-v3 context
 adapter. The existing three sampled candidates plus the beam candidate are
 read from each `candidates.jsonl`; the mBART generation stage is not rerun.
 GPT-6 chooses an index and cannot rewrite a candidate. References are withheld
-from the API. Outputs are written beside, rather than over, the Qwen runs.
+from the API. Outputs are written in separate GPT-6 directories; the original sampling candidates remain frozen.
 
 Run from `D:\CIS600\context-mt` after copying the updated scripts into
 `scripts\`. Activate `.venv` and set `OPENAI_API_KEY` in the **current**
@@ -59,5 +59,4 @@ Then run COMET in the separate COMET environment:
 COMET writes `outputs/decoding/scaled_v3/validation_comet_comparison_gpt6/`.
 This reuses the verified frozen B beam scores; it does not make GPT-6 API
 calls. Compare beam, Top-k + GPT-6 and Top-p + GPT-6 on **validation**.
-Do not describe these validation scores as held-out test results. The existing
-Qwen decoding comparison remains an explicitly labeled historical result.
+The full validation run completed with 1,500 examples per method. GPT-6 reranking yielded macro BLEU/chrF/COMET of 33.72/61.57/0.8726 for Top-k and 33.64/61.54/0.8727 for Top-p, versus 33.95/61.61/0.8700 for beam. Do not describe these validation scores as held-out test results.
