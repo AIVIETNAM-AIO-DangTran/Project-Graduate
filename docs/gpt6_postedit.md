@@ -13,7 +13,7 @@ This follow-up changes only the LLM post-editor. Use the frozen balanced mBART v
 | Test | C: sentence + GPT-6 | 37.08 | 64.58 | 0.8879 |
 | Test | D: context + GPT-6 | 37.17 | 64.64 | 0.8888 |
 
-Both C−A and D−B improve BLEU, chrF, and COMET on validation and test. A 1,000-replication paired document bootstrap for the test gives D−B intervals of [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF, and [+0.0166, +0.0221] COMET. With all four arms included, the same document resamples give test C−A macro COMET +0.01796 [+0.01560, +0.02075] and D−C +0.00083 [+0.00012, +0.00153]. The D−C difference is small; the underlying B−A intervals include zero. See [full v3 results](scaled_v3_results.md) and the local JSON reports. These intervals are conditional on one frozen training seed and one LLM run; independent bilingual review is still pending.
+Both C−A and D−B improve BLEU, chrF, and COMET on validation and test. A 1,000-replication paired document bootstrap for the test gives D−B intervals of [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF, and [+0.0166, +0.0221] COMET. With all four arms included, the same document resamples give test C−A macro COMET +0.01796 [+0.01560, +0.02075] and D−C +0.00083 [+0.00012, +0.00153]. The D−C difference is small; the underlying B−A intervals include zero. See [full v3 results](scaled_v3_results.md) and the local JSON reports. These intervals are conditional on one frozen training seed and one LLM run; they do not measure human judgments.
 
 ## Windows PowerShell setup
 
@@ -66,7 +66,7 @@ if ($LASTEXITCODE -ne 0) { throw "GPT-6 test post-edit did not finish." }
   --device cuda --batch-size 4
 ```
 
-The GPT-6 COMET files are `outputs/metrics/comet_{validation,test}_scaled_v3_gpt6_metrics.json`. Compare A/B with C/D within each GPT-6 report and use document-level confidence intervals and bilingual review before claiming better translation quality.
+The GPT-6 COMET files are `outputs/metrics/comet_{validation,test}_scaled_v3_gpt6_metrics.json`. Compare A/B with C/D within each GPT-6 report and use document-level confidence intervals before drawing conclusions beyond the measured metrics.
 
 For paired document-level intervals after COMET, run `python scripts\13_document_bootstrap.py --split validation --postedit-model gpt6` (and then `--split test`). 
 
