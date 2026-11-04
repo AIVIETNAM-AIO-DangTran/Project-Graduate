@@ -70,4 +70,4 @@ The German reference for en-de / ep-97-04-10.xml / 398 stops at â€œund die Nrn.â
 - COMET and the single Europarl reference are useful diagnostics, but neither is a substitute for human assessment. A truncated German reference and a mixed-script output illustrate opposite failure modes.
 - Selected examples were inspected because their score changes were large. The examples are illustrative, not a random manually annotated estimate of overall error frequency.
 - A controlled comparison with unweighted loss, Top-k/Top-p candidate generation, reranking and a demonstration interface were optional in the preliminary proposal and were not part of these four arms.
-- Before finalizing the thesis/report, add a compact manual rubric (adequacy, omitted content, terminology, cross-sentence reference, fluency, script validity) and double-check a balanced sample of positive, negative and unchanged examples. Keep the already frozen test scores unchanged.
+- The observed examples are illustrative. Keep the already frozen test scores unchanged and avoid population-level claims about specific error types.
