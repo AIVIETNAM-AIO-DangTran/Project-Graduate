@@ -41,7 +41,7 @@ def index(rows, path):
 
 def verify(dataset):
     data_dir = ROOT / "data/processed" / f"europarl_{dataset}"
-    comparison = ROOT / "outputs/decoding" / dataset / "validation_comet_comparison"
+    comparison = ROOT / "outputs/decoding" / dataset / "validation_comet_comparison_gpt6"
     scores_path = comparison / "all_examples.csv"
     baseline = ROOT / "outputs/predictions" / f"context_lora_balanced_{dataset}_validation.csv"
     report = json.loads((comparison / "metrics.json").read_text(encoding="utf-8"))
@@ -71,7 +71,7 @@ def verify(dataset):
         raise ValueError("Beam predictions do not match validation keys")
     for method in ("top_k", "top_p"):
         info = provenance[method]
-        folder = Path(info["directory"])
+        if info["reranker"].get("provider") != "openai" or not info["reranker"].get("model", "").startswith("gpt-6"):\n            raise ValueError(f"{method} was not reranked with GPT-6")\n        folder = Path(info["directory"])
         if not folder.is_absolute():
             folder = ROOT / folder
         prediction_path = folder / "predictions.csv"
@@ -131,10 +131,10 @@ def short(text, limit=150):
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--dataset", choices=("multidoc_v2", "scaled_v3"), default="scaled_v3")
+    parser.add_argument("--dataset", choices=("scaled_v3",), default="scaled_v3")
     args = parser.parse_args()
     rows, metrics = verify(args.dataset)
-    output_dir = ROOT / "outputs/analysis" / f"decoding_validation_{args.dataset}"
+    output_dir = ROOT / "outputs/analysis" / f"decoding_validation_{args.dataset}_gpt6"
     output_dir.mkdir(parents=True, exist_ok=True)
     lines = ["# Top-k / Top-p validation error analysis", "",
              f"Ranked by paired COMET score on identical Europarl {args.dataset} sentences. "
