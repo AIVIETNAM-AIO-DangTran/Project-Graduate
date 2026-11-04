@@ -71,7 +71,9 @@ def verify(dataset):
         raise ValueError("Beam predictions do not match validation keys")
     for method in ("top_k", "top_p"):
         info = provenance[method]
-        if info["reranker"].get("provider") != "openai" or not info["reranker"].get("model", "").startswith("gpt-6"):\n            raise ValueError(f"{method} was not reranked with GPT-6")\n        folder = Path(info["directory"])
+        if info["reranker"].get("provider") != "openai" or not info["reranker"].get("model", "").startswith("gpt-6"):
+            raise ValueError(f"{method} was not reranked with GPT-6")
+        folder = Path(info["directory"])
         if not folder.is_absolute():
             folder = ROOT / folder
         prediction_path = folder / "predictions.csv"
@@ -138,7 +140,7 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
     lines = ["# Top-k / Top-p validation error analysis", "",
              f"Ranked by paired COMET score on identical Europarl {args.dataset} sentences. "
-             "These rankings identify examples for human review; COMET does not establish that "
+             "These rankings identify examples with large COMET changes; COMET does not establish that "
              "the preceding sentence caused an improvement.", ""]
     for method in ("top_k", "top_p"):
         lines.extend([f"## {method}", "", "| Pair | N | Changed | Helped | Hurt | Tied | Mean delta (changed) |",
@@ -177,7 +179,7 @@ def main():
             if not output:
                 lines.append("No changed examples in this category.\n")
     lines.extend(["## Interpretation", "",
-                  "Compare meaning and omissions manually in the source, reference and two outputs. "
+                  "These examples illustrate score differences without verifying meaning or omissions. "
                   "Report both corpus BLEU/chrF and COMET; a positive COMET delta on one "
                   "sentence is an inspection cue, not a significance test.", ""])
     report_path = output_dir / "qualitative_report.md"
