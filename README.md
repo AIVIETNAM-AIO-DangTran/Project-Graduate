@@ -22,7 +22,7 @@ Held-out **test** macro scores (equal weight for en-de and en-fr):
 | C | 37.08 | 64.58 | 0.8879 |
 | D | 37.17 | 64.64 | 0.8888 |
 
-Paired whole-document intervals show substantial gains for GPT-6 post-editing over both mBART drafts, while context by itself does not show a stable improvement. A 60-row independent blinded bilingual review remains pending. See [full results](docs/scaled_v3_results.md) and [GPT-6 post-edit workflow](docs/gpt6_postedit.md).
+Paired whole-document intervals show substantial gains for GPT-6 post-editing over both mBART drafts, while context by itself does not show a stable improvement. See [full results](docs/scaled_v3_results.md) and [GPT-6 post-edit workflow](docs/gpt6_postedit.md).
 
 ## Validation-only sampling extension
 
@@ -33,10 +33,10 @@ Three candidates per row were generated with Top-k (k=50) or Top-p (p=0.9), temp
 - `scripts/01_download_europarl.py` through `05_evaluate_lora.py`: data, EDA, LoRA and beam evaluations.
 - `scripts/06_postedit_lora.py`, `07_evaluate_comet.py`: GPT-6 post-editing and A/B/C/D scoring.
 - `scripts/08_sample_decoding.py`, `15_rerank_decoding_gpt6.py`, `09_evaluate_decoding_comet.py`: sample candidates, GPT-6 rerank, validation COMET.
-- `scripts/10_analyze_decoding_effect.py`, `11_build_manual_review.py`, `12_summarize_abcd_review.py`: error analysis and blinded review.
+- `scripts/10_analyze_decoding_effect.py`: rank changed Top-k/Top-p translations using saved COMET scores.
 - `scripts/13_document_bootstrap.py`, `14_audit_v3_alignment.py`: paired uncertainty and corpus audit.
 - `notebooks/01_europarl_eda.ipynb`, `02_experiment_analysis.ipynb`: v3 EDA and experiment analysis. Executed copies reside in `outputs/notebooks/`.
 - `demo_v3.py`: local Streamlit A/B/C/D demo. Live GPT-6 calls are billed separately.
 - `data/processed/europarl_scaled_v3/`: frozen data and manifest. Pilot/v2 processed data are retained only as exclusion records for reproducing the v3 document split.
 
-Main experiments used Windows PowerShell and CUDA. COMET runs in `.venv-comet`. Raw archives, virtual environments, model caches, and intermediate checkpoints are not committed. This study uses one training seed and one post-edit configuration; automatic metrics do not replace bilingual human review.
+Main experiments used Windows PowerShell and CUDA. COMET runs in `.venv-comet`. Raw archives, virtual environments, model caches, and intermediate checkpoints are not committed. This study uses one training seed and one post-edit configuration; automatic metrics describe the measured corpus and do not establish discourse-level correctness for individual translations.
