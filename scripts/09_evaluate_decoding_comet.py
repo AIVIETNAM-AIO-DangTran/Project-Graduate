@@ -5,6 +5,7 @@ after verifying the exact dataset, predictions, checkpoint, and row alignment.
 """
 
 import argparse
+import importlib.util
 import json
 import math
 from importlib.metadata import version
@@ -12,10 +13,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from evaluate_comet import (
-    KEYS, MODEL_NAME, PAIRS, PROJECT_ROOT, file_hash, load_metric,
-    read_table, validate_scores, write_csv, write_json,
+_spec = importlib.util.spec_from_file_location(
+    "evaluate_comet", Path(__file__).with_name("07_evaluate_comet.py")
 )
+_comet = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_comet)
+KEYS, MODEL_NAME, PAIRS, PROJECT_ROOT = (
+    _comet.KEYS, _comet.MODEL_NAME, _comet.PAIRS, _comet.PROJECT_ROOT
+)
+file_hash, load_metric, read_table = _comet.file_hash, _comet.load_metric, _comet.read_table
+validate_scores, write_csv, write_json = _comet.validate_scores, _comet.write_csv, _comet.write_json
 
 SPLIT = "validation"
 
@@ -27,6 +34,8 @@ def arguments():
     parser.add_argument("--top-p-dir", type=Path, default=None)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)
+    parser.add_argument("--reranker", choices=("gpt6",), default="gpt6",
+                        help="Separate output folder and verify reranker provenance.")
     args = parser.parse_args()
     if args.batch_size < 1:
         parser.error("batch-size must be positive")
@@ -82,8 +91,8 @@ def inputs(args):
                   "existing_comet_report": file_hash(existing_metrics),
                   "existing_comet_scores": file_hash(existing_scores)}
     folders = {
-        "top_k": args.top_k_dir or decoding_dir / "validation_top_k_k50_n3_t0p8_seed42",
-        "top_p": args.top_p_dir or decoding_dir / "validation_top_p_p0p9_n3_t0p8_seed42",
+        "top_k": args.top_k_dir or decoding_dir / "validation_top_k_k50_n3_t0p8_seed42_gpt6",
+        "top_p": args.top_p_dir or decoding_dir / "validation_top_p_p0p9_n3_t0p8_seed42_gpt6",
     }
     for method, folder in folders.items():
         folder = folder if folder.is_absolute() else PROJECT_ROOT / folder
@@ -104,6 +113,9 @@ def inputs(args):
             raise ValueError(f"{method}: adapter differs from the frozen context model")
         if report["reranker"]["candidate_sha256"] != file_hash(folder / "candidates.jsonl"):
             raise ValueError(f"{method}: candidates changed after reranking")
+        reranker = report["reranker"]
+        if reranker.get("provider") != "openai" or not reranker.get("model", "").startswith("gpt-6"):
+            raise ValueError(f"{method}: expected GPT-6 OpenAI reranker")
         selected = read_table(prediction_path, SPLIT)
         check_content(truth, selected, method)
         if (selected["beam_prediction"].ne(beam["prediction"]).any()
@@ -159,7 +171,7 @@ def main():
         table[f"{method}_comet"] = validate_scores(predicted.scores, len(table))
         table[f"{method}_comet_delta"] = table[f"{method}_comet"] - table["beam_comet"]
     summary = summarize(table)
-    output_dir = decoding_dir / "validation_comet_comparison"
+    output_dir = decoding_dir / "validation_comet_comparison_gpt6"
     scores_path, metrics_path = output_dir / "all_examples.csv", output_dir / "metrics.json"
     write_csv(scores_path, table)
     write_json(metrics_path, {"metric_model": MODEL_NAME, "checkpoint_sha256": checkpoint_hash,
@@ -169,7 +181,7 @@ def main():
                                            ("unbabel-comet", "torch", "transformers", "pytorch-lightning", "pandas")},
                               "macro_definition": "unweighted average of en-de and en-fr means",
                               "summary": summary, "sentence_scores": str(scores_path)})
-    print("\n=== COMET VALIDATION: BEAM VS TOP-K VS TOP-P ===")
+    print(f"\n=== COMET VALIDATION: BEAM VS TOP-K VS TOP-P ({args.reranker}) ===")
     for label, row in summary.items():
         print(f"{label}: macro={row['macro_comet']:.4f}, delta={row['macro_delta_vs_beam']:+.4f}")
         for pair, values in row["pairs"].items():

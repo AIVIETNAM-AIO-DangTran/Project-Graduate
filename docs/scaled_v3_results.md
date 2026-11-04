@@ -1,101 +1,38 @@
-# Europarl scaled v3: results and interpretation
+# Europarl scaled v3: completed results
 
-## Experimental setup
+## Scope and design
 
-This is a controlled Europarl subset, not a run on every Europarl sentence. The frozen splits contain 12,000 train, 1,500 validation and 1,500 test translation pairs, drawn from 400, 100 and 100 documents respectively. Each split has two English-source language pairs in a 2:1 ratio: en-de (8,000/1,000/1,000) and en-fr (4,000/500/500). The builder checks document isolation and alignment structure; spot checking semantic equivalence remains a separate human task. Excluded pilot/v2 documents keep this experiment distinct from the earlier small study.
+The controlled v3 corpus has 12,000 training, 1,500 validation and 1,500 held-out test translation pairs, with 400/100/100 document-separated source documents. Each split contains en-de and en-fr in a 2:1 example ratio. All macro scores average the two language pairs equally. The four mBART-50 LoRA training arms cross sentence/context input with balanced/unweighted loss. The primary A/B/C/D comparison uses balanced training and four-beam decoding. C and D are GPT-6 Astra post-edits of the same frozen A and B beam drafts respectively. References were not sent to GPT-6.
 
-All four mBART-50 LoRA models used three epochs and the same 128-token maximum. The sentence models translate `src`; the context models receive `src </s> previous_src`, truncating from the right. The EDA found 177 of 15,000 context inputs (1.18%) exceeding 128 tokens; none exceeded 256. The two balanced models use fixed pair weights; the two unweighted models are the loss ablation. Evaluation uses four-beam decoding. C and D post-edit the respective A and B predictions with local Qwen2.5:7b at temperature zero, without sending references to the LLM.
+## Primary A/B/C/D results
 
-The tables below are transcribed from the completed local v3 runs. Macro scores give en-de and en-fr **equal weight**, despite the 2:1 example ratio. BLEU and chrF are corpus scores within each pair, then averaged across pairs; COMET scores are averaged within each pair, then across pairs. Values are rounded, so subtracting the displayed entries can differ slightly from the underlying results.
+| Split | Arm | Macro BLEU | Macro chrF | Macro COMET |
+| --- | --- | ---: | ---: | ---: |
+| Validation | A: sentence | 33.99 | 61.76 | 0.8699 |
+| Validation | B: context | 33.95 | 61.61 | 0.8700 |
+| Validation | C: A + GPT-6 | 36.97 | 64.24 | 0.8881 |
+| Validation | D: B + GPT-6 | 36.92 | 64.21 | 0.8896 |
+| Test | A: sentence | 33.61 | 61.76 | 0.8700 |
+| Test | B: context | 33.51 | 61.69 | 0.8695 |
+| Test | C: A + GPT-6 | 37.08 | 64.58 | 0.8879 |
+| Test | D: B + GPT-6 | 37.17 | 64.64 | 0.8888 |
 
-## Validation
+On held-out test, C-A is +3.48 BLEU, +2.83 chrF and +0.0180 COMET; D-B is +3.66 BLEU, +2.96 chrF and +0.0192 COMET. Whole-document paired bootstrap with 1,000 resamples gives D-B intervals of [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. B-A intervals include zero; adding one preceding source sentence did not yield a stable independent gain. D-C is +0.0008 COMET on test, while its BLEU/chrF intervals include zero. These conditional intervals do not quantify retraining or human-judgment uncertainty. COMET and paired intervals: `outputs/metrics/comet_{validation,test}_scaled_v3_gpt6_metrics.json` and `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3_gpt6.json`.
 
-| Model | en-de BLEU | en-fr BLEU | Macro BLEU | Macro chrF | Macro COMET |
-| --- | ---: | ---: | ---: | ---: | ---: |
-| A · Sentence, balanced | 29.17 | 38.82 | 33.99 | 61.76 | 0.8699 |
-| B · Context, balanced | 29.11 | 38.78 | 33.95 | 61.61 | 0.8700 |
-| Sentence, unweighted | — | — | 33.97 | 61.81 | — |
-| Context, unweighted | — | — | 34.11 | 61.74 | — |
-| C · A + Qwen | 28.20 | 37.93 | 33.06 | 61.35 | 0.8687 |
-| D · B + Qwen | 28.69 | 38.72 | 33.70 | 61.66 | 0.8705 |
+The unweighted sentence/context test arms scored 33.52/33.46 macro BLEU and 61.66/61.60 macro chrF; balanced counterparts scored 33.61/33.51 and 61.76/61.69. Small mixed differences do not show a consistent advantage for weighting. COMET was not run for the unweighted arms.
 
-Qwen changed 1,230/1,500 C predictions and 844/1,500 D predictions. On the frozen validation split it lowered macro BLEU in both arms. The COMET differences were small: B−A ≈ +0.0001, C−A ≈ −0.0011, D−B ≈ +0.0005.
+## Top-k and Top-p: GPT-6 candidate reranking
 
-### Top-k and Top-p decoding (validation only)
+This branch is **validation only**. The frozen B adapter produced three sampled candidates per example at temperature 0.8 and seed 42, with Top-k k=50 or Top-p p=0.9. GPT-6 chose one of those or the frozen beam prediction, without reference access or rewriting. The candidates and beam were the same as in the earlier decoding run. This compares sampling **plus reranking** with beam, not raw sampling.
 
-The context adapter B was decoded with either four-beam search or three sampled candidates plus the frozen beam candidate. Qwen selected a candidate without seeing a reference. Top-k used k=50; Top-p used p=0.9; both used temperature 0.8, seed 42 and three sampled candidates per source. This compares **sampling plus reranking** against beam, rather than raw sampling alone.
-
-| Decoding | Macro BLEU | Macro chrF | Macro COMET | Outputs changed |
+| Validation decoder | Macro BLEU | Macro chrF | Macro COMET | Changed vs beam |
 | --- | ---: | ---: | ---: | ---: |
-| Beam | 33.95 | 61.61 | 0.8700 | 0 |
-| Top-k + rerank | 33.46 | 61.33 | 0.8706 | 290/1,500 |
-| Top-p + rerank | 33.36 | 61.18 | 0.8698 | 421/1,500 |
+| Four-beam baseline | 33.95 | 61.61 | 0.8700 | 0 |
+| Top-k + GPT-6 rerank | 33.72 | 61.57 | 0.8726 | 362/1,500 |
+| Top-p + GPT-6 rerank | 33.64 | 61.54 | 0.8727 | 508/1,500 |
 
-For the changed cases, COMET favored top-k 138 times and beam 152 times; for top-p it favored sampling 202 times and beam 219 times. We kept **beam as the primary decoder** after validation. There is no v3 test-set sampling result.
+Top-k COMET is 0.8721 for en-de (N=1,000) and 0.8731 for en-fr (N=500); Top-p is 0.8721 and 0.8732. The beam counterparts are 0.8698 and 0.8702. Top-k gains +0.0026 macro COMET against beam but loses 0.23 BLEU and 0.04 chrF; Top-p gains +0.0027 COMET but loses 0.31 BLEU and 0.07 chrF. No document-bootstrap interval has been computed for these decoding differences, and no sampled-decoder test score is claimed. Beam remains the primary held-out test decoder. Source outputs in `outputs/decoding/scaled_v3/validation_top_k_k50_n3_t0p8_seed42_gpt6/`, `validation_top_p_p0p9_n3_t0p8_seed42_gpt6/` and `validation_comet_comparison_gpt6/`.
 
-An exploratory blind AI-assisted review of 16 random changed translations per comparison found mixed meaning judgments: context B versus A 7/8/1 better/worse/tied, C versus A 9/5/2, D versus B 7/5/4. The sample is small and AI judged; it is not an independent human assessment or an estimate of population error rates. Other selected examples were enriched by context cues and COMET extremes and should not be reported as random samples.
+## Quality controls and open work
 
-## Held-out test
-
-| Model | en-de BLEU | en-de chrF | en-de COMET | en-fr BLEU | en-fr chrF | en-fr COMET | Macro BLEU | Macro chrF | Macro COMET |
-| --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| A · Sentence, balanced | 29.19 | 59.01 | 0.8674 | 38.02 | 64.51 | 0.8725 | 33.61 | 61.76 | 0.8700 |
-| B · Context, balanced | 28.70 | 58.77 | 0.8663 | 38.33 | 64.61 | 0.8727 | 33.51 | 61.69 | 0.8695 |
-| Sentence, unweighted | 28.99 | 58.90 | — | 38.04 | 64.42 | — | 33.52 | 61.66 | — |
-| Context, unweighted | 28.75 | 58.75 | — | 38.17 | 64.45 | — | 33.46 | 61.60 | — |
-| C · A + Qwen | 28.69 | 58.62 | 0.8666 | 37.09 | 64.12 | 0.8743 | 32.89 | 61.37 | 0.8704 |
-| D · B + Qwen | 28.56 | 58.60 | 0.8681 | 37.94 | 64.44 | 0.8763 | 33.25 | 61.52 | 0.8722 |
-
-Compared on the same held-out examples, B−A is −0.10 macro BLEU, −0.07 chrF and about −0.0005 COMET. C−A is −0.72 BLEU, −0.39 chrF and about +0.0004 COMET. D−B is −0.26 BLEU, −0.17 chrF and about +0.0027 COMET. Qwen changed 1,230 C outputs and 806 D outputs. The highest macro COMET is D, while the highest macro BLEU and chrF are A. Balanced training beats the corresponding unweighted model by about 0.09 macro BLEU and 0.10 chrF for sentence input, and about 0.05 BLEU and 0.09 chrF for context input. The pair-level pattern is mixed; these differences do not establish a consistent quality gain.
-
-## Paired document-level uncertainty
-
-We drew 2,000 bootstrap resamples of **whole document IDs** from each split (100 documents, seed 20261013). Each draw keeps the en-de/en-fr sentences from the same sampled documents together and compares matched A, B and D predictions. Intervals are percentile 95% intervals for the macro difference; BLEU and chrF are recomputed as corpus scores within each language pair. Full-precision outputs, hashes and SacreBLEU signatures are in `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3.json`. These intervals condition on the single frozen training seed and Qwen run; they do not quantify retraining or annotator uncertainty.
-
-| Split and contrast | Macro BLEU delta [95% interval] | Macro chrF delta [95% interval] | Macro COMET delta [95% interval] |
-| --- | ---: | ---: | ---: |
-| Validation B − A | −0.047 [−0.368, +0.334] | −0.148 [−0.467, +0.116] | +0.0001 [−0.0013, +0.0016] |
-| Validation D − B | −0.244 [−0.953, +0.070] | +0.052 [−0.279, +0.351] | +0.0005 [−0.0037, +0.0043] |
-| Test B − A | −0.094 [−0.418, +0.211] | −0.071 [−0.267, +0.114] | −0.0005 [−0.0016, +0.0006] |
-| Test D − B | −0.259 [−0.579, +0.027] | −0.169 [−0.388, +0.026] | +0.0027 [+0.0008, +0.0046] |
-
-The test D−B COMET interval excludes zero under this document-resampling method, but its validation interval includes zero and the BLEU/chrF intervals include zero. This does not establish a stable gain across metrics, splits or training seeds. The intervals are descriptive and were not adjusted for the number of comparisons.
-
-## Alignment and blinded review
-
-`scripts/14_audit_v3_alignment.py` checked manifest hashes, uniqueness and document/current-source isolation for all 15,000 rows, then sampled 30 pairs (five distinct documents per language pair per split). The sample is in `outputs/analysis/alignment_audit_scaled_v3/`. An AI-assisted preliminary reading marked 27 pairs apparently aligned, two uncertain and one likely English–German negation discrepancy in a test reference (ALIGN-022). This is a warning about reference fidelity, **not** a measured dataset-wide error rate. Raw XML adjacency and bilingual human verification are still required. The original frozen test CSV was not edited after inspection.
-
-The 60-row blinded validation review sheet remains unfilled by an independent human. `docs/human_review_protocol.md` defines the rubric and keeps the current AI judgments separate; `outputs/analysis/abcd_validation_scaled_v3/manual_review/ai_review_diagnostic.md` summarizes the existing AI labels by context, pronoun and terminology categories. Those selected cases are exploratory.
-
-## GPT-6 Astra follow-up (completed 27 October 2026)
-
-The frozen balanced A/B beam predictions were post-edited with GPT-6 Astra via the OpenAI API using the same current-source/context fields and prompt format as the historical Qwen experiment; references were never sent to the LLM. GPT-6 outputs have distinct `_llm_gpt6_` names. This section reports those outputs; the earlier tables above remain the historical Qwen results.
-
-| Split | Arm | Macro BLEU | Macro chrF | Macro COMET | Changed from mBART |
-| --- | --- | ---: | ---: | ---: | ---: |
-| Validation | C · A + GPT-6 | 36.97 | 64.24 | 0.8881 | 977/1,500 |
-| Validation | D · B + GPT-6 | 36.92 | 64.21 | 0.8896 | 1,001/1,500 |
-| Test | C · A + GPT-6 | 37.08 | 64.58 | 0.8879 | 1,025/1,500 |
-| Test | D · B + GPT-6 | 37.17 | 64.64 | 0.8888 | 1,058/1,500 |
-
-On test, C−A is +3.48 BLEU, +2.83 chrF and +0.0180 COMET; D−B is +3.66 BLEU, +2.96 chrF and +0.0192 COMET. The original paired document bootstrap (`seed=20261013`, 1,000 resamples of 100 shared documents) yields D−B test 95% percentile intervals [+3.06, +4.26] BLEU, [+2.55, +3.37] chrF and [+0.0166, +0.0221] COMET. An additional four-arm calculation with the same document draws yields macro COMET intervals:
-
-| Split | Contrast | Observed macro COMET difference | 95% document-bootstrap interval |
-| --- | --- | ---: | ---: |
-| Validation | C−A | +0.01824 | [+0.01522, +0.02123] |
-| Validation | D−C | +0.00145 | [+0.00039, +0.00259] |
-| Test | C−A | +0.01796 | [+0.01560, +0.02075] |
-| Test | D−C | +0.00083 | [+0.00012, +0.00153] |
-
-D−C is consistently positive by COMET but small. Its BLEU and chrF intervals include zero: on validation, BLEU −0.0509 [−0.4211, +0.3400] and chrF −0.0260 [−0.2224, +0.1714]; on test, BLEU +0.0859 [−0.2420, +0.3952] and chrF +0.0579 [−0.1803, +0.2928]. B−A intervals contain zero on both splits, so the context adapter by itself has no established stable gain. Intervals condition on this dataset, one training seed and one LLM run, and are unadjusted for multiple contrasts. They do not replace bilingual human review. For example, a validation source/reference pair keeps the Latin sentence `Pactio Olisipiensis censenda est!` unchanged; GPT-6 translated it into German in C, reducing COMET against that reference. Manual review should inspect such reference-sensitive cases as well as idioms and omissions.
-
-The historical Qwen C/D test macro COMET is 0.8704/0.8722, versus GPT-6 0.8879/0.8888. Both historical Qwen per-example score tables were aligned to the GPT-6 tables by translation key (1,500/1,500 matched, with identical A/B scores). Using 1,000 paired resamples of the same 100 documents, GPT-6 minus Qwen macro COMET is +0.01937 [+0.01660, +0.02259] for C and +0.01903 [+0.01535, +0.02337] for D on validation; on test it is +0.01752 [+0.01510, +0.02035] for C and +0.01656 [+0.01436, +0.01940] for D. These are unadjusted conditional intervals. Different providers and decoding implementations limit a model-weights-only attribution. Source files are `outputs/metrics/comet_{validation,test}_scaled_v3_gpt6_metrics.json`, `outputs/metrics/document_bootstrap_{validation,test}_scaled_v3_gpt6.json`, and `outputs/analysis/comet_{validation,test}_scaled_v3_gpt6/all_examples.csv`. `scripts/13_document_bootstrap.py` now includes C−A and D−C when rerun, leaving older output JSONs unchanged until regeneration.
-
-## Interpretation and remaining checks
-
-- The v3 experiment completes the A/B/C/D comparison and the balanced-loss ablation on a larger, document-separated controlled subset. It does not show a stable advantage from simply appending the previous source sentence. The historical Qwen post-editor trades lower BLEU/chrF for a small COMET gain in D; GPT-6 results are reported separately above.
-- Document-level paired percentile intervals are now reported above, but retraining uncertainty, multiple comparisons and reference-quality uncertainty remain. Avoid broad causal or generalization claims.
-- A blind **human** evaluation with the defined rubric for pronouns, entities, terminology, omitted content and prior-sentence contamination would strengthen the context claim. Existing AI-assisted reviews are exploratory.
-- V2 and v3 use different held-out references and documents. Their raw BLEU scores must not be read as a matched v2→v3 improvement. The final demo uses beam and balanced v3 adapters; displaying a translation is not a test-set metric.
-
-Primary local artifacts: `data/processed/europarl_scaled_v3/summary.json`, the four `outputs/checkpoints/*_scaled_v3/run_metadata.json` files, `outputs/metrics/*_scaled_v3_*_metrics.json`, `outputs/metrics/comet_{validation,test}_scaled_v3_metrics.json`, `outputs/decoding/scaled_v3/`, `outputs/analysis/decoding_validation_scaled_v3/`, and `notebooks/02_experiment_analysis.ipynb`. Verify each file in the working project before submission; older GitHub snapshots can lack the large v3 artifacts.
+The v3 builder checks document isolation and structural alignment, and EDA found 177/15,000 context inputs (1.18%) above the 128-token cap. A 30-pair AI-assisted spot check flagged one likely English-German negation discrepancy in a held-out reference; this is a review flag, not a corpus-level error rate. The frozen test references were not edited. A 60-row blinded bilingual review of GPT-6 translations remains to be graded independently; the existing AI-assisted labels are exploratory, not human judgments. Raw v2 versus v3 scores refer to different data and should not be treated as paired improvements.

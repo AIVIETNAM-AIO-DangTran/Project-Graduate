@@ -16,16 +16,10 @@ ROOT = Path(__file__).resolve().parents[1]
 KEYS = ("pair", "doc_id", "src_sent_id", "tgt_sent_id")
 PAIRS = ("en-de", "en-fr")
 SEED = 20261012
-ABCD_SCORES = {
-    "gpt6": ROOT / "outputs/analysis/comet_validation_scaled_v3_gpt6/all_examples.csv",
-    "qwen": ROOT / "outputs/analysis/comet_validation_scaled_v3/all_examples.csv",
-}
-ABCD_OUTPUT = {
-    "gpt6": ROOT / "outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review",
-    "qwen": ROOT / "outputs/analysis/abcd_validation_scaled_v3/manual_review",
-}
-DECODING_SCORES = ROOT / "outputs/decoding/scaled_v3/validation_comet_comparison/all_examples.csv"
-DECODING_OUTPUT = ROOT / "outputs/analysis/decoding_validation_scaled_v3/manual_review"
+ABCD_SCORES = ROOT / "outputs/analysis/comet_validation_scaled_v3_gpt6/all_examples.csv"
+ABCD_OUTPUT = ROOT / "outputs/analysis/abcd_validation_scaled_v3_gpt6/manual_review"
+DECODING_SCORES = ROOT / "outputs/decoding/scaled_v3/validation_comet_comparison_gpt6/all_examples.csv"
+DECODING_OUTPUT = ROOT / "outputs/analysis/decoding_validation_scaled_v3_gpt6/manual_review"
 COMPARISONS = {
     "context": ("A", "B"),
     "llm_sentence": ("A", "C"),
@@ -220,14 +214,14 @@ def build_decoding(args):
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--kind", choices=("abcd", "decoding"), required=True)
-    parser.add_argument("--postedit-model", choices=("gpt6", "qwen"), default="gpt6",
-                        help="A/B/C/D model; decoding review remains the historical Qwen reranker")
+    parser.add_argument("--postedit-model", choices=("gpt6",), default="gpt6",
+                        help="GPT-6 post-editing and decoding review")
     parser.add_argument("--scores", type=Path, help="Score table; defaults to this kind's scaled_v3 validation table")
     parser.add_argument("--output-dir", type=Path, help="New directory for blind review and answer key")
     args = parser.parse_args()
     if args.kind == "abcd":
-        args.scores = args.scores or ABCD_SCORES[args.postedit_model]
-        args.output_dir = args.output_dir or ABCD_OUTPUT[args.postedit_model]
+        args.scores = args.scores or ABCD_SCORES
+        args.output_dir = args.output_dir or ABCD_OUTPUT
         build_abcd(args)
     else:
         args.scores = args.scores or DECODING_SCORES
