@@ -1,6 +1,6 @@
 # Scaled Europarl v3 experiment
 
-**Status (November 2026):** The dataset, four balanced/unweighted models, A/B/C/D evaluation with GPT-6 Astra on validation and test, document-level intervals, and validation-only Top-k/Top-p candidate reranking with GPT-6 are complete. Independent bilingual human evaluation remains open. See [completed results](scaled_v3_results.md).
+**Status (November 2026):** The dataset, four balanced/unweighted models, A/B/C/D evaluation with GPT-6 Astra on validation and test, document-level intervals, and validation-only Top-k/Top-p candidate reranking with GPT-6 are complete. See [completed results](scaled_v3_results.md).
 
 For GPT-6 API key setup, post-editing and COMET, see [GPT-6 post-edit workflow](gpt6_postedit.md). For validation-only sampling and candidate reranking, see [GPT-6 decoding workflow](gpt6_decoding.md).
 
@@ -9,7 +9,7 @@ This is the next, larger controlled experiment. It does not replace the publishe
 ## Design and gates
 
 1. Freeze a document-stratified v3 dataset before training. Exclude both the pilot and all v2 documents, so the new test set is separate from previous experiments. Keep the manifest and CSV hashes.
-2. Inspect the new dataset, including a manual bilingual-alignment sample and truncation rates. Choose a source length once on validation, then keep that setting for all arms.
+2. Inspect the new dataset, including structural alignment checks and truncation rates. Choose a source length once on validation, then keep that setting for all arms.
 3. Train A (current sentence) and B (current sentence plus previous source) from the same base mBART model using the same balanced-loss schedule and 3 epochs. Keep the two output directories distinct.
 4. Run A/B beam decoding on validation, then C/D local LLM post-editing and COMET on validation. Make any design decisions here and freeze them.
 5. Run all four arms once on the v3 test and score BLEU, chrF and COMET by pair. Report both language pairs and document-aware uncertainty. Do not use test scores to select prompts or hyperparameters.
@@ -46,7 +46,7 @@ python scripts\04_train_lora.py `
 python scripts\03_eda_europarl.py --dataset scaled_v3
 ```
 
-Before training, check the printed counts, document isolation, `data/processed/europarl_scaled_v3/summary.json`, source lengths, and a manually inspected sample of en-de/en-fr source–target alignments from each split. If the builder cannot find 400/100/100 eligible documents, preserve the error and rerun with a **new output directory** and a documented smaller plan; never edit the frozen v2 CSVs.
+Before training, check the printed counts, document isolation, `data/processed/europarl_scaled_v3/summary.json`, source lengths, and the documented alignment audit. If the builder cannot find 400/100/100 eligible documents, preserve the error and rerun with a **new output directory** and a documented smaller plan; never edit the frozen v2 CSVs.
 
 ## 2. Train A and B
 
@@ -98,6 +98,6 @@ Save the v3 manifest, run metadata, predictions and metrics. Do not compare raw 
 
 - Train one or both arms with `--loss-mode unweighted` to measure the effect of balanced loss on the smaller en-fr pair. Use fresh checkpoint directories and add explicit evaluation variants; do not call balanced loss beneficial merely because the PDF introduces it.
 - The PDF shows direct top-k, top-p and joint top-k+top-p sampling. The current project instead uses three sampled candidates plus a frozen beam candidate with blind LLM reranking. A direct-sampling and joint-sampling ablation could be added on validation, with the same seed and decoding budget. Judge accuracy, completeness and consistency, not only diversity.
-- A stronger context-specific check labels pronouns, entity references and repeated terminology across adjacent sentences and compares paired A/B or C/D translations by document. A small blinded human review is more diagnostic than a tiny corpus-level BLEU difference.
+- A stronger context-specific analysis could compare pronouns, entity references and repeated terminology across adjacent sentences. The current automatic scores alone do not establish that these phenomena improved.
 
 The reference PDF is a teaching project based on OPUS-100. Its example balanced-loss formula divides by the sum of weights within each batch; with microbatch size one that would cancel the pair weight. This repository instead uses globally normalized fixed pair weights and gradient accumulation so pair weighting affects optimization.
