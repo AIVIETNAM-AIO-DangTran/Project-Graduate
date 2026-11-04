@@ -34,7 +34,7 @@ def arguments():
     parser.add_argument("--top-p-dir", type=Path, default=None)
     parser.add_argument("--device", choices=("cuda", "cpu"), default="cuda")
     parser.add_argument("--batch-size", type=int, default=4)
-    parser.add_argument("--reranker", choices=("qwen", "gpt6"), default="qwen",
+    parser.add_argument("--reranker", choices=("gpt6",), default="gpt6",
                         help="Separate output folder and verify reranker provenance.")
     args = parser.parse_args()
     if args.batch_size < 1:
@@ -91,8 +91,8 @@ def inputs(args):
                   "existing_comet_report": file_hash(existing_metrics),
                   "existing_comet_scores": file_hash(existing_scores)}
     folders = {
-        "top_k": args.top_k_dir or decoding_dir / "validation_top_k_k50_n3_t0p8_seed42",
-        "top_p": args.top_p_dir or decoding_dir / "validation_top_p_p0p9_n3_t0p8_seed42",
+        "top_k": args.top_k_dir or decoding_dir / "validation_top_k_k50_n3_t0p8_seed42_gpt6",
+        "top_p": args.top_p_dir or decoding_dir / "validation_top_p_p0p9_n3_t0p8_seed42_gpt6",
     }
     for method, folder in folders.items():
         folder = folder if folder.is_absolute() else PROJECT_ROOT / folder
@@ -114,11 +114,8 @@ def inputs(args):
         if report["reranker"]["candidate_sha256"] != file_hash(folder / "candidates.jsonl"):
             raise ValueError(f"{method}: candidates changed after reranking")
         reranker = report["reranker"]
-        if args.reranker == "gpt6":
-            if reranker.get("provider") != "openai" or not reranker.get("model", "").startswith("gpt-6"):
-                raise ValueError(f"{method}: expected GPT-6 OpenAI reranker")
-        elif reranker.get("provider") == "openai":
-            raise ValueError(f"{method}: expected historical local Qwen reranker")
+        if reranker.get("provider") != "openai" or not reranker.get("model", "").startswith("gpt-6"):
+            raise ValueError(f"{method}: expected GPT-6 OpenAI reranker")
         selected = read_table(prediction_path, SPLIT)
         check_content(truth, selected, method)
         if (selected["beam_prediction"].ne(beam["prediction"]).any()
@@ -174,10 +171,7 @@ def main():
         table[f"{method}_comet"] = validate_scores(predicted.scores, len(table))
         table[f"{method}_comet_delta"] = table[f"{method}_comet"] - table["beam_comet"]
     summary = summarize(table)
-    output_dir = decoding_dir / (
-        "validation_comet_comparison_gpt6" if args.reranker == "gpt6"
-        else "validation_comet_comparison"
-    )
+    output_dir = decoding_dir / "validation_comet_comparison_gpt6"
     scores_path, metrics_path = output_dir / "all_examples.csv", output_dir / "metrics.json"
     write_csv(scores_path, table)
     write_json(metrics_path, {"metric_model": MODEL_NAME, "checkpoint_sha256": checkpoint_hash,
